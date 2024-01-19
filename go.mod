@@ -1,4 +1,4 @@
-module blast-core
+module github.com/SarthakMakhija/blast-core
 
 go 1.20
 

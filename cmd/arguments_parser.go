@@ -1,10 +1,10 @@
 package blast
 
 import (
-	"blast-core/payload"
-	"blast-core/workers"
 	"flag"
 	"fmt"
+	"github.com/SarthakMakhija/blast-core/payload"
+	"github.com/SarthakMakhija/blast-core/workers"
 	"github.com/dimiro1/banner"
 	"os"
 	"runtime"

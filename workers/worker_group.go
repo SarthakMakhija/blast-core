@@ -6,7 +6,7 @@ import (
 	"os"
 	"sync"
 
-	"blast-core/report"
+	"github.com/SarthakMakhija/blast-core/report"
 )
 
 // WorkerGroup is a collection of workers that sends totalRequests to the server.

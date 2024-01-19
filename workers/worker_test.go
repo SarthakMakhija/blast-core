@@ -1,15 +1,15 @@
 package workers
 
 import (
-	"blast-core/payload"
 	"bufio"
 	"bytes"
+	"github.com/SarthakMakhija/blast-core/payload"
 	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
-	"blast-core/report"
+	"github.com/SarthakMakhija/blast-core/report"
 )
 
 type BytesWriteCloser struct {

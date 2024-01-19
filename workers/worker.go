@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"blast-core/report"
+	"github.com/SarthakMakhija/blast-core/report"
 )
 
 // ErrNilConnection is the error that is returned when the worker operates on an unestablished

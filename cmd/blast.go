@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
-	"blast-core/report"
-	"blast-core/workers"
+	"github.com/SarthakMakhija/blast-core/report"
+	"github.com/SarthakMakhija/blast-core/workers"
 )
 
 // OutputStream defines a io.Writer to write the report to.

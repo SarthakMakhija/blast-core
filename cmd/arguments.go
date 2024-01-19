@@ -1,7 +1,7 @@
 package blast
 
 import (
-	"blast-core/payload"
+	"github.com/SarthakMakhija/blast-core/payload"
 )
 
 // CommandLineArguments defines the command line arguments supported by blast.
