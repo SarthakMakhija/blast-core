@@ -62,8 +62,8 @@ func NewDynamicPayloadArgumentsParser(payloadGenerator payload.PayloadGenerator)
 
 // Parse parses the command line arguments.
 func (parser ConstantPayloadArgumentsParser) Parse(executableName string) Blast {
-	logo := `{{ .Title "blast" "" 0}}`
-	banner.InitString(os.Stdout, true, false, logo)
+	logo := `{{ .Title "%v" "" 0}}`
+	banner.InitString(os.Stdout, true, false, fmt.Sprintf(logo, executableName))
 	_, _ = fmt.Fprintf(os.Stdout, versionLabel, version)
 
 	flag.Usage = func() {
@@ -139,8 +139,8 @@ Options:
 
 // Parse parses the command line arguments.
 func (parser DynamicPayloadArgumentsParser) Parse(executableName string) Blast {
-	logo := `{{ .Title "blast" "" 0}}`
-	banner.InitString(os.Stdout, true, false, logo)
+	logo := `{{ .Title "%v" "" 0}}`
+	banner.InitString(os.Stdout, true, false, fmt.Sprintf(logo, executableName))
 	_, _ = fmt.Fprintf(os.Stdout, versionLabel, version)
 
 	flag.Usage = func() {
