@@ -85,6 +85,12 @@ func main() {
 }
 ```
 
+3. **Can I create custom CLI without using the parsing of command line arguments supported by blast-core?**
+
+Yes, you can always create a custom CLI that leverages **blast-core**'s features. The custom CLI must create an 
+instance of [Blast struct](https://github.com/SarthakMakhija/blast-core/blob/main/cmd/blast.go) which acts as an orchestrator between `Workers`, `ResponseReader` and `Reporter`.
+
+
 ## References
 [hey](https://github.com/rakyll/hey)
 
