@@ -1,7 +1,8 @@
 package tests
 
 import (
-	"blast/payload"
+	blast "blast-core/cmd"
+	"blast-core/payload"
 	"bytes"
 	"regexp"
 	"strconv"
@@ -11,8 +12,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"blast/cmd"
-	"blast/workers"
+	"blast-core/workers"
 )
 
 func TestBlastWithLoadGeneration(t *testing.T) {

@@ -1,7 +1,7 @@
 package workers
 
 import (
-	"blast/payload"
+	"blast-core/payload"
 	"bufio"
 	"bytes"
 	"sync"
@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"blast/report"
+	"blast-core/report"
 )
 
 type BytesWriteCloser struct {

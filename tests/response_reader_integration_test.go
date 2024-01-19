@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"blast/report"
+	"blast-core/report"
 )
 
 func TestReadsResponseFromASingleConnection(t *testing.T) {

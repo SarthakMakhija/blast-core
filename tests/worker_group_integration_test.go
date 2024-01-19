@@ -1,15 +1,15 @@
 package tests
 
 import (
-	"blast/payload"
+	"blast-core/payload"
 	"sort"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 
-	"blast/report"
-	"blast/workers"
+	"blast-core/report"
+	"blast-core/workers"
 )
 
 func TestSendsRequestsWithSingleConnection(t *testing.T) {

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"blast/cmd"
+	blast "blast-core/cmd"
 	"os"
 	"os/signal"
 )

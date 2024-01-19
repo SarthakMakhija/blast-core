@@ -1,4 +1,4 @@
-module blast
+module blast-core
 
 go 1.20
 

@@ -1,8 +1,8 @@
 package blast
 
 import (
-	"blast/payload"
-	"blast/workers"
+	"blast-core/payload"
+	"blast-core/workers"
 	"flag"
 	"fmt"
 	"github.com/dimiro1/banner"

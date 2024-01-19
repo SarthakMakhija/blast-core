@@ -1,10 +1,10 @@
 package workers
 
 import (
-	"blast/payload"
+	"blast-core/payload"
 	"time"
 
-	"blast/report"
+	"blast-core/report"
 )
 
 const dialTimeout = 3 * time.Second
