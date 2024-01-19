@@ -71,7 +71,7 @@ The `main` looks like the following:
 ```go
 func main() {
     commandArguments := blast.NewCommandArguments()
-    blastInstance := commandArguments.ParseWithDynamicPayload(<<Provide an implementation of PayloadGenerator>>)
+    blastInstance := commandArguments.ParseWithDynamicPayload(executableName, <<An implementation of PayloadGenerator>>)
 
 	interruptChannel := make(chan os.Signal, 1)
 	signal.Notify(interruptChannel, os.Interrupt)
