@@ -70,18 +70,18 @@ The `main` looks like the following:
 
 ```go
 func main() {
-    	commandArguments := blast.NewCommandArguments()
-    	blastInstance := commandArguments.ParseWithDynamicPayload(executableName, <<An implementation of PayloadGenerator>>)
+    commandArguments := blast.NewCommandArguments()
+    blastInstance := commandArguments.ParseWithDynamicPayload(executableName, <<An implementation of PayloadGenerator>>)
 
-	interruptChannel := make(chan os.Signal, 1)
-	signal.Notify(interruptChannel, os.Interrupt)
-	
-	go func() {
-		<-interruptChannel
-		blastInstance.Stop()
-	}()
-	
-	blastInstance.WaitForCompletion()
+    interruptChannel := make(chan os.Signal, 1)
+    signal.Notify(interruptChannel, os.Interrupt)
+
+    go func() {
+        <-interruptChannel
+        blastInstance.Stop()
+    }()
+
+    blastInstance.WaitForCompletion()
 }
 ```
 
