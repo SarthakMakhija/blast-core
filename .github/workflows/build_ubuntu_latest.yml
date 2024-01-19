@@ -1,4 +1,4 @@
-name: blast_ubuntu_latest
+name: blast_core_ubuntu_latest
 
 on:
   push:

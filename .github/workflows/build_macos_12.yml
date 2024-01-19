@@ -1,4 +1,4 @@
-name: blast_macos_12 
+name: blast_core_macos_12
 
 on:
   push:
