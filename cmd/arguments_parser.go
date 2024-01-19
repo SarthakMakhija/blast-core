@@ -35,27 +35,32 @@ const (
 
 var exitFunction = usageAndExit
 
+// ArgumentsParser supports parsing command line arguments.
 type ArgumentsParser interface {
 	Parse(executableName string) Blast
 }
 
+// ConstantPayloadArgumentsParser parses command line arguments with constant payload.
 type ConstantPayloadArgumentsParser struct{}
 
+// DynamicPayloadArgumentsParser parses command line arguments with dynamic payload.
 type DynamicPayloadArgumentsParser struct {
 	payloadGenerator payload.PayloadGenerator
 }
 
+// NewConstantPayloadArgumentsParser creates a new instance of ConstantPayloadArgumentsParser.
 func NewConstantPayloadArgumentsParser() ConstantPayloadArgumentsParser {
 	return ConstantPayloadArgumentsParser{}
 }
 
+// NewDynamicPayloadArgumentsParser creates a new instance of DynamicPayloadArgumentsParser.
 func NewDynamicPayloadArgumentsParser(payloadGenerator payload.PayloadGenerator) DynamicPayloadArgumentsParser {
 	return DynamicPayloadArgumentsParser{
 		payloadGenerator: payloadGenerator,
 	}
 }
 
-// Parse is the entrypoint for CommandLineArguments.
+// Parse parses the command line arguments.
 func (parser ConstantPayloadArgumentsParser) Parse(executableName string) Blast {
 	logo := `{{ .Title "blast" "" 0}}`
 	banner.InitString(os.Stdout, true, false, logo)
@@ -132,7 +137,7 @@ Options:
 	)
 }
 
-// Parse is the entrypoint for CommandLineArguments.
+// Parse parses the command line arguments.
 func (parser DynamicPayloadArgumentsParser) Parse(executableName string) Blast {
 	logo := `{{ .Title "blast" "" 0}}`
 	banner.InitString(os.Stdout, true, false, logo)
