@@ -28,11 +28,6 @@ var (
 	cpus                    = flag.Int("cpus", runtime.GOMAXPROCS(-1), "")
 )
 
-const (
-	version      = "0.0.2"
-	versionLabel = " Version: %s\n\n"
-)
-
 var exitFunction = usageAndExit
 
 // ArgumentsParser supports parsing command line arguments.
@@ -64,7 +59,6 @@ func NewDynamicPayloadArgumentsParser(payloadGenerator payload.PayloadGenerator)
 func (parser ConstantPayloadArgumentsParser) Parse(executableName string) Blast {
 	logo := `{{ .Title "%v" "" 0}}`
 	banner.InitString(os.Stdout, true, false, fmt.Sprintf(logo, executableName))
-	_, _ = fmt.Fprintf(os.Stdout, versionLabel, version)
 
 	flag.Usage = func() {
 		var usage = `%v is a load generator for TCP servers which maintain persistent connections.
@@ -141,7 +135,6 @@ Options:
 func (parser DynamicPayloadArgumentsParser) Parse(executableName string) Blast {
 	logo := `{{ .Title "%v" "" 0}}`
 	banner.InitString(os.Stdout, true, false, fmt.Sprintf(logo, executableName))
-	_, _ = fmt.Fprintf(os.Stdout, versionLabel, version)
 
 	flag.Usage = func() {
 		var usage = `%v is a load generator for TCP servers which maintain persistent connections.
