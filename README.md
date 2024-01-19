@@ -1,6 +1,7 @@
 <p align="center">
-   <img alt="blast" src="https://github.com/SarthakMakhija/blast/assets/21108320/0c282eb8-fb21-4294-bccd-12a81426b894" />
+	<img alt="blast" src="https://github.com/SarthakMakhija/blast-core/assets/21108320/5c55527f-ece4-478f-b6a3-f26c536c232a" />
 </p>
+
 
 | Platform      | Build Status                                                                                                                                                                                                       |
 |---------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
