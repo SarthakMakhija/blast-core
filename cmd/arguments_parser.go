@@ -36,7 +36,7 @@ const (
 var exitFunction = usageAndExit
 
 type ArgumentsParser interface {
-	Parse() Blast
+	Parse(executableName string) Blast
 }
 
 type ConstantPayloadArgumentsParser struct{}
@@ -56,15 +56,15 @@ func NewDynamicPayloadArgumentsParser(payloadGenerator payload.PayloadGenerator)
 }
 
 // Parse is the entrypoint for CommandLineArguments.
-func (parser ConstantPayloadArgumentsParser) Parse() Blast {
+func (parser ConstantPayloadArgumentsParser) Parse(executableName string) Blast {
 	logo := `{{ .Title "blast" "" 0}}`
 	banner.InitString(os.Stdout, true, false, logo)
 	_, _ = fmt.Fprintf(os.Stdout, versionLabel, version)
 
 	flag.Usage = func() {
-		var usage = `blast is a load generator for TCP servers which maintain persistent connections.
+		var usage = `%v is a load generator for TCP servers which maintain persistent connections.
 
-Usage: blast [options...] <url>
+Usage: %v [options...] <url>
 
 Options:
   -n      Number of requests to run. Default is 1000.
@@ -100,7 +100,7 @@ Options:
   -cpus   Number of cpu cores to use.
           (default for current machine is %d cores)
 `
-		_, _ = fmt.Fprint(os.Stderr, fmt.Sprintf(usage, runtime.NumCPU()))
+		_, _ = fmt.Fprint(os.Stderr, fmt.Sprintf(usage, executableName, executableName, runtime.NumCPU()))
 	}
 
 	flag.Parse()
@@ -133,15 +133,15 @@ Options:
 }
 
 // Parse is the entrypoint for CommandLineArguments.
-func (parser DynamicPayloadArgumentsParser) Parse() Blast {
+func (parser DynamicPayloadArgumentsParser) Parse(executableName string) Blast {
 	logo := `{{ .Title "blast" "" 0}}`
 	banner.InitString(os.Stdout, true, false, logo)
 	_, _ = fmt.Fprintf(os.Stdout, versionLabel, version)
 
 	flag.Usage = func() {
-		var usage = `blast is a load generator for TCP servers which maintain persistent connections.
+		var usage = `%v is a load generator for TCP servers which maintain persistent connections.
 
-Usage: blast [options...] <url>
+Usage: %v [options...] <url>
 
 Options:
   -n      Number of requests to run. Default is 1000.
@@ -176,7 +176,7 @@ Options:
   -cpus   Number of cpu cores to use.
           (default for current machine is %d cores)
 `
-		_, _ = fmt.Fprint(os.Stderr, fmt.Sprintf(usage, runtime.NumCPU()))
+		_, _ = fmt.Fprint(os.Stderr, fmt.Sprintf(usage, executableName, executableName, runtime.NumCPU()))
 	}
 
 	flag.Parse()

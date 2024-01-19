@@ -13,11 +13,11 @@ func NewCommandArguments() CommandLineArguments {
 }
 
 // Parse parses command line arguments using ConstantPayloadArgumentsParser.
-func (arguments CommandLineArguments) Parse() Blast {
-	return NewConstantPayloadArgumentsParser().Parse()
+func (arguments CommandLineArguments) Parse(executableName string) Blast {
+	return NewConstantPayloadArgumentsParser().Parse(executableName)
 }
 
 // ParseWithDynamicPayload parses command line arguments using DynamicPayloadArgumentsParser.
-func (arguments CommandLineArguments) ParseWithDynamicPayload(payloadGenerator payload.PayloadGenerator) Blast {
-	return NewDynamicPayloadArgumentsParser(payloadGenerator).Parse()
+func (arguments CommandLineArguments) ParseWithDynamicPayload(executableName string, payloadGenerator payload.PayloadGenerator) Blast {
+	return NewDynamicPayloadArgumentsParser(payloadGenerator).Parse(executableName)
 }

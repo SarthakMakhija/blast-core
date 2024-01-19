@@ -8,7 +8,7 @@ import (
 
 func main() {
 	commandArguments := blast.NewCommandArguments()
-	blastInstance := commandArguments.Parse()
+	blastInstance := commandArguments.Parse("blast")
 
 	interruptChannel := make(chan os.Signal, 1)
 	signal.Notify(interruptChannel, os.Interrupt)
