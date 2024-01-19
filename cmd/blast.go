@@ -167,7 +167,7 @@ func (blast Blast) WaitForCompletion() {
 	blast.reporter.PrintReport(OutputStream)
 }
 
-// Stop stops the blast, usually called when an interrupt is received in ../main.go.
+// Stop stops the blast, usually called when an interrupt is received from the CLI.
 func (blast Blast) Stop() {
 	if !isClosed(blast.doneChannel) {
 		close(blast.doneChannel)
