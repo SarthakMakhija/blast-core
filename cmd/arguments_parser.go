@@ -16,6 +16,7 @@ var (
 	numberOfRequests        = flag.Uint("n", 1000, "")
 	concurrency             = flag.Uint("c", 50, "")
 	connections             = flag.Uint("conn", 1, "")
+	keepConnectionsAlive    = flag.Bool("kA", false, "")
 	payloadFilePath         = flag.String("f", "", "")
 	requestsPerSecond       = flag.Float64("rps", 0, "")
 	loadDuration            = flag.Duration("z", 20*time.Second, "")
@@ -85,7 +86,7 @@ Options:
           The load generation will stop if either the duration (-z) has exceeded or the total 
           responses have been read. This flag is applied only if "Read responses" (-Rr)
           is true.
-  -Rsr    Read successful responses  is the successful responses to read from the target server. 
+  -Rsr    Read successful responses is the total successful responses to read from the target server. 
           The load generation will stop if either the duration (-z) has exceeded or 
           the total successful responses have been read. Either of "-Rtr"
           or "-Rsr" must be specified, if -Rr is set. This flag is applied only if 
@@ -95,6 +96,9 @@ Options:
           Total number of connections cannot be greater than the concurrency level.
           Also, concurrency level modulo connections must be equal to zero.
           Default is 1.
+
+  -kA     Keep connections alive. If set, blast will keep running until a termination signal is sent.
+		  Default is false.
 
   -cpus   Number of cpu cores to use.
           (default for current machine is %d cores)
@@ -160,7 +164,7 @@ Options:
           The load generation will stop if either the duration (-z) has exceeded or the total 
           responses have been read. This flag is applied only if "Read responses" (-Rr)
           is true.
-  -Rsr    Read successful responses  is the successful responses to read from the target server. 
+  -Rsr    Read successful responses is the total successful responses to read from the target server. 
           The load generation will stop if either the duration (-z) has exceeded or 
           the total successful responses have been read. Either of "-Rtr"
           or "-Rsr" must be specified, if -Rr is set. This flag is applied only if 
@@ -170,6 +174,9 @@ Options:
           Total number of connections cannot be greater than the concurrency level.
           Also, concurrency level modulo connections must be equal to zero.
           Default is 1.
+	
+  -kA     Keep connections alive. If set, blast will keep running until a termination signal is sent.
+		  Default is false.
 
   -cpus   Number of cpu cores to use.
           (default for current machine is %d cores)
@@ -334,9 +341,9 @@ func setUpBlast(
 			ReadingOption:                  readingOption,
 			ReadDeadline:                   *readResponseDeadline,
 		}
-		instance = NewBlastWithResponseReading(groupOptions, responseOptions, *loadDuration)
+		instance = NewBlastWithResponseReading(groupOptions, responseOptions, *loadDuration, *keepConnectionsAlive)
 	} else {
-		instance = NewBlastWithoutResponseReading(groupOptions, *loadDuration)
+		instance = NewBlastWithoutResponseReading(groupOptions, *loadDuration, *keepConnectionsAlive)
 	}
 	return instance
 }
