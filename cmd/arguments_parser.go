@@ -70,7 +70,7 @@ Usage: %v [options...] <url>
 Options:
   -n      Number of requests to sent in each run. Default is 1000.
   -r      Number of repetitions. Default is 1. Consider n = 100, r = 10.
-		  A total of 10 runs will happen and each will send 100 requests.
+          A total of 10 runs will happen and each will send 100 requests.
   -c      Number of workers to run concurrently. Total number of requests cannot
           be smaller than the concurrency level. Default is 50.
   -f      File path containing the load payload.
@@ -100,8 +100,7 @@ Options:
           Also, concurrency level modulo connections must be equal to zero.
           Default is 1.
 
-  -kA     Keep connections alive. If set, blast will keep running until a termination signal is sent.
-		  Default is false.
+  -kA     Keep connections alive. If set, blast will keep running until a termination signal is sent. Default is false.
 
   -cpus   Number of cpu cores to use.
           (default for current machine is %d cores)
@@ -152,7 +151,7 @@ Usage: %v [options...] <url>
 Options:
   -n      Number of requests to run. Default is 1000.
   -r      Number of repetitions. Default is 1. Consider n = 100, r = 10. 
-		  A total of 10 runs will happen and each will send 100 requests.
+          A total of 10 runs will happen and each will send 100 requests.
   -c      Number of workers to run concurrently. Total number of requests cannot
           be smaller than the concurrency level. Default is 50.
   -rps    Rate limit in requests per second (RPS) per worker. Default is no rate limit.
@@ -181,8 +180,7 @@ Options:
           Also, concurrency level modulo connections must be equal to zero.
           Default is 1.
 	
-  -kA     Keep connections alive. If set, blast will keep running until a termination signal is sent.
-		  Default is false.
+  -kA     Keep connections alive. If set, blast will keep running until a termination signal is sent. Default is false.
 
   -cpus   Number of cpu cores to use.
           (default for current machine is %d cores)
