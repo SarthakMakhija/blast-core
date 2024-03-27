@@ -56,7 +56,7 @@ func (group *WorkerGroup) Run() chan report.LoadGenerationResponse {
 	}
 	loadGenerationResponseChannel := make(
 		chan report.LoadGenerationResponse,
-		group.options.requestsPerRun,
+		group.options.TotalRequests(),
 	)
 
 	go func() {
@@ -82,9 +82,7 @@ func (group *WorkerGroup) Close() {
 // This configuration will end up sharing a single connection with four workers.
 // runWorkers also starts the report.ResponseReader to read from the connection,
 // if it is configured to do so.
-func (group *WorkerGroup) runWorkers(
-	loadGenerationResponseChannel chan report.LoadGenerationResponse,
-) {
+func (group *WorkerGroup) runWorkers(loadGenerationResponseChannel chan report.LoadGenerationResponse) {
 	//creates new instance of Workers.
 	instantiateWorkers := func() []Worker {
 		connectionsSharedByWorker := group.options.concurrency / group.options.connections

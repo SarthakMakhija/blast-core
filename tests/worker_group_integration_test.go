@@ -170,3 +170,43 @@ func TestSendsRequestsWithDialTimeout(t *testing.T) {
 		println(response.Err.Error())
 	}
 }
+
+func TestSendsRepeatingRequestsWithMultipleConnections(t *testing.T) {
+	payloadSizeBytes := int64(10)
+	server, err := NewEchoServer("tcp", "localhost:8099", payloadSizeBytes)
+	assert.Nil(t, err)
+
+	server.accept(t)
+	defer server.stop()
+
+	concurrency, connections, requestsPerRun := uint(20), uint(10), uint(40)
+	workerGroup := workers.NewWorkerGroup(workers.NewGroupOptionsFullyLoaded(
+		concurrency,
+		connections,
+		requestsPerRun,
+		2,
+		payload.NewConstantPayloadGenerator([]byte("HelloWorld")),
+		"localhost:8099",
+		0.0,
+		3*time.Second,
+	))
+	loadGenerationResponseChannel := workerGroup.Run()
+
+	workerGroup.WaitTillDone()
+	close(loadGenerationResponseChannel)
+
+	uniqueConnectionIds := make(map[int]bool)
+	for response := range loadGenerationResponseChannel {
+		uniqueConnectionIds[response.ConnectionId] = true
+		assert.Nil(t, response.Err)
+		assert.Equal(t, int64(10), response.PayloadLengthBytes)
+	}
+
+	connectionIds := make([]int, 0, len(uniqueConnectionIds))
+	for connectionId := range uniqueConnectionIds {
+		connectionIds = append(connectionIds, connectionId)
+	}
+	sort.Ints(connectionIds)
+
+	assert.Equal(t, []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, connectionIds)
+}

@@ -343,3 +343,62 @@ func TestBlastWithLoadGenerationForMaximumDurationAndConnectionsAreKeptAlive(t *
 
 	assert.True(t, totalRequestsMade < 2_00_000)
 }
+
+func TestBlastWithLoadGenerationRepeatingNTimes(t *testing.T) {
+	payloadSizeBytes := int64(10)
+	server, err := NewEchoServer("tcp", "localhost:10010", payloadSizeBytes)
+	assert.Nil(t, err)
+
+	server.accept(t)
+	defer server.stop()
+
+	concurrency, totalRequests, repeat := uint(10), uint(20), uint(4)
+
+	groupOptions := workers.NewGroupOptions(concurrency, totalRequests, repeat, payload.NewConstantPayloadGenerator([]byte("HelloWorld")), "localhost:10010")
+	buffer := &bytes.Buffer{}
+	blast.OutputStream = buffer
+
+	blastInstance := blast.NewBlastWithoutResponseReading(groupOptions, 5*time.Minute, false)
+	blastInstance.WaitForCompletion()
+
+	output := string(buffer.Bytes())
+	assert.True(t, strings.Contains(output, "TotalConnections: 1"))
+	assert.True(t, strings.Contains(output, "TotalRequests: 80"))
+	assert.True(t, strings.Contains(output, "SuccessCount: 80"))
+	assert.True(t, strings.Contains(output, "ErrorCount: 0"))
+	assert.True(t, strings.Contains(output, "TotalPayloadSize: 800 B"))
+	assert.True(t, strings.Contains(output, "AveragePayloadSize: 10 B"))
+}
+
+func TestBlastWithLoadGenerationRepeatingNTimesAndResponseReading(t *testing.T) {
+	payloadSizeBytes := int64(10)
+	server, err := NewEchoServer("tcp", "localhost:10011", payloadSizeBytes)
+	assert.Nil(t, err)
+
+	server.accept(t)
+	defer server.stop()
+
+	concurrency, totalRequests, repeat := uint(10), uint(20), uint(5)
+
+	groupOptions := workers.NewGroupOptions(concurrency, totalRequests, repeat, payload.NewConstantPayloadGenerator([]byte("HelloWorld")), "localhost:10011")
+	responseOptions := blast.ResponseOptions{
+		ResponsePayloadSizeBytes: payloadSizeBytes,
+		TotalResponsesToRead:     totalRequests * repeat,
+		ReadingOption:            blast.ReadTotalResponses,
+		ReadDeadline:             100 * time.Millisecond,
+	}
+	buffer := &bytes.Buffer{}
+	blast.OutputStream = buffer
+
+	blastInstance := blast.NewBlastWithResponseReading(groupOptions, responseOptions, 5*time.Minute, false)
+	blastInstance.WaitForCompletion()
+
+	output := string(buffer.Bytes())
+	assert.True(t, strings.Contains(output, "ResponseMetrics"))
+	assert.True(t, strings.Contains(output, "TotalResponses: 100"))
+	assert.True(t, strings.Contains(output, "TotalConnections: 1"))
+	assert.True(t, strings.Contains(output, "SuccessCount: 100"))
+	assert.True(t, strings.Contains(output, "ErrorCount: 0"))
+	assert.True(t, strings.Contains(output, "TotalPayloadSize: 1.0 kB"))
+	assert.True(t, strings.Contains(output, "AveragePayloadSize: 10 B"))
+}
