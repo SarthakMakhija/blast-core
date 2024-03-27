@@ -111,17 +111,20 @@ func (group *WorkerGroup) runWorkers(
 		return workers
 	}
 
-	//runs all the workers.
-	runWorkers := func(workers []Worker) *sync.WaitGroup {
-		var wg sync.WaitGroup
-		wg.Add(int(group.options.concurrency))
+	//runs all the workers, each worker will be run "repeat" number of times.
+	//runWorkersAndWait will wait till all the workers are done in each run.
+	runWorkersAndWait := func(workers []Worker) {
+		for run := uint(1); run <= group.options.repeat; run++ {
+			var wg sync.WaitGroup
+			wg.Add(len(workers))
 
-		for _, worker := range workers {
-			worker.run(&wg)
+			for _, worker := range workers {
+				worker.run(&wg)
+			}
+			wg.Wait()
 		}
-		return &wg
 	}
-	runWorkers(instantiateWorkers()).Wait()
+	runWorkersAndWait(instantiateWorkers())
 	group.doneChannel <- struct{}{}
 }
 
