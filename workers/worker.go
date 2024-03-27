@@ -24,7 +24,7 @@ type Worker struct {
 }
 
 // run runs a Worker.
-// The total number of requests that a Worker sends is equal to the totalRequests/concurrency.
+// The total number of requests that a Worker sends is equal to the requestsPerRun/concurrency.
 func (worker Worker) run(wg *sync.WaitGroup) {
 	go func() {
 		defer wg.Done()
@@ -32,8 +32,8 @@ func (worker Worker) run(wg *sync.WaitGroup) {
 	}()
 }
 
-// sendRequests sends worker.options.totalRequests on the connection.
-// Each Worker can be stopped by closing the stopChannel, even before the totalRequests are sent.
+// sendRequests sends worker.options.requestsPerRun on the connection.
+// Each Worker can be stopped by closing the stopChannel, even before the requestsPerRun are sent.
 // Each worker also implements throttle if worker.options.requestsPerSecond > 0.
 func (worker Worker) sendRequests() {
 	var throttle <-chan time.Time

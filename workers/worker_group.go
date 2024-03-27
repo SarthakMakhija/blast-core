@@ -9,9 +9,9 @@ import (
 	"github.com/SarthakMakhija/blast-core/report"
 )
 
-// WorkerGroup is a collection of workers that sends totalRequests to the server.
+// WorkerGroup is a collection of workers that sends requestsPerRun to the server.
 // WorkerGroup creates a total of options.concurrency Workers.
-// Each Worker takes a part of the totalRequests.
+// Each Worker takes a part of the requestsPerRun.
 // Consider that 100 requests are to be sent with 5 workers, then each Worker will send
 // a total of 20 requests.
 // Consider that 100 requests are to be sent with 6 workers, then the system will end up
@@ -51,12 +51,12 @@ func NewWorkerGroupWithResponseReader(
 // This method runs a separate goroutine that runs the workers and the goroutine waits until
 // all the workers are done.
 func (group *WorkerGroup) Run() chan report.LoadGenerationResponse {
-	if group.options.totalRequests%group.options.concurrency != 0 {
-		group.options.totalRequests = ((group.options.totalRequests / group.options.concurrency) + 1) * group.options.concurrency
+	if group.options.requestsPerRun%group.options.concurrency != 0 {
+		group.options.requestsPerRun = ((group.options.requestsPerRun / group.options.concurrency) + 1) * group.options.concurrency
 	}
 	loadGenerationResponseChannel := make(
 		chan report.LoadGenerationResponse,
-		group.options.totalRequests,
+		group.options.requestsPerRun,
 	)
 
 	go func() {
@@ -150,13 +150,13 @@ func (group *WorkerGroup) newConnection() (net.Conn, error) {
 
 // instantiateWorker creates a new Worker.
 func (group *WorkerGroup) instantiateWorker(connection net.Conn, connectionId int, loadGenerationResponseChannel chan report.LoadGenerationResponse) Worker {
-	totalRequests := group.options.totalRequests
+	requestsPerRun := group.options.requestsPerRun
 	return Worker{
 		connection:   connection,
 		connectionId: connectionId,
 		requestId:    group.requestId,
 		options: WorkerOptions{
-			totalRequests:          totalRequests / group.options.concurrency,
+			totalRequests:          requestsPerRun / group.options.concurrency,
 			payloadGenerator:       group.options.payloadGenerator,
 			targetAddress:          group.options.targetAddress,
 			requestsPerSecond:      group.options.requestsPerSecond,

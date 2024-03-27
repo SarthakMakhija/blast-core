@@ -13,7 +13,7 @@ const dialTimeout = 3 * time.Second
 type GroupOptions struct {
 	concurrency       uint
 	connections       uint
-	totalRequests     uint
+	requestsPerRun    uint
 	repeat            uint
 	payloadGenerator  payload.PayloadGenerator
 	targetAddress     string
@@ -34,7 +34,7 @@ type WorkerOptions struct {
 // NewGroupOptions creates a new instance of GroupOptions.
 func NewGroupOptions(
 	concurrency uint,
-	totalRequests uint,
+	requestsPerRun uint,
 	repeat uint,
 	payloadGenerator payload.PayloadGenerator,
 	targetAddress string,
@@ -42,7 +42,7 @@ func NewGroupOptions(
 	return NewGroupOptionsFullyLoaded(
 		concurrency,
 		1,
-		totalRequests,
+		requestsPerRun,
 		repeat,
 		payloadGenerator,
 		targetAddress,
@@ -55,14 +55,14 @@ func NewGroupOptions(
 func NewGroupOptionsWithConnections(
 	concurrency uint,
 	connections uint,
-	totalRequests uint,
+	requestsPerRun uint,
 	payloadGenerator payload.PayloadGenerator,
 	targetAddress string,
 ) GroupOptions {
 	return NewGroupOptionsFullyLoaded(
 		concurrency,
 		connections,
-		totalRequests,
+		requestsPerRun,
 		1,
 		payloadGenerator,
 		targetAddress,
@@ -75,7 +75,7 @@ func NewGroupOptionsWithConnections(
 func NewGroupOptionsFullyLoaded(
 	concurrency uint,
 	connections uint,
-	totalRequests uint,
+	requestsPerRun uint,
 	repeat uint,
 	payloadGenerator payload.PayloadGenerator,
 	targetAddress string,
@@ -85,7 +85,7 @@ func NewGroupOptionsFullyLoaded(
 	return GroupOptions{
 		concurrency:       concurrency,
 		connections:       connections,
-		totalRequests:     totalRequests,
+		requestsPerRun:    requestsPerRun,
 		repeat:            repeat,
 		payloadGenerator:  payloadGenerator,
 		targetAddress:     targetAddress,
@@ -94,7 +94,7 @@ func NewGroupOptionsFullyLoaded(
 	}
 }
 
-// TotalRequests returns the total number of requests set in GroupOptions.
+// TotalRequests returns the total number of requests set in GroupOptions across all the runs defined by repeat flag.
 func (groupOptions GroupOptions) TotalRequests() uint {
-	return groupOptions.totalRequests * groupOptions.repeat
+	return groupOptions.requestsPerRun * groupOptions.repeat
 }
