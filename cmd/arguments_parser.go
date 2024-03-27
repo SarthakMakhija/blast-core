@@ -69,7 +69,8 @@ Usage: %v [options...] <url>
 
 Options:
   -n      Number of requests to sent in each run. Default is 1000.
-  -r      Number of repetitions. Default is 1. Consider n = 100, r = 10. A total of 10 runs will happen and each will send 100 requests.
+  -r      Number of repetitions. Default is 1. Consider n = 100, r = 10.
+		  A total of 10 runs will happen and each will send 100 requests.
   -c      Number of workers to run concurrently. Total number of requests cannot
           be smaller than the concurrency level. Default is 50.
   -f      File path containing the load payload.
@@ -150,7 +151,8 @@ Usage: %v [options...] <url>
 
 Options:
   -n      Number of requests to run. Default is 1000.
-  -r      Number of repetitions. Default is 1. Consider n = 100, r = 10. A total of 10 runs will happen and each will send 100 requests.
+  -r      Number of repetitions. Default is 1. Consider n = 100, r = 10. 
+		  A total of 10 runs will happen and each will send 100 requests.
   -c      Number of workers to run concurrently. Total number of requests cannot
           be smaller than the concurrency level. Default is 50.
   -rps    Rate limit in requests per second (RPS) per worker. Default is no rate limit.
