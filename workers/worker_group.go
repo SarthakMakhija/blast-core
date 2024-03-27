@@ -85,35 +85,43 @@ func (group *WorkerGroup) Close() {
 func (group *WorkerGroup) runWorkers(
 	loadGenerationResponseChannel chan report.LoadGenerationResponse,
 ) {
-	var wg sync.WaitGroup
-	wg.Add(int(group.options.concurrency))
+	//creates new instance of Workers.
+	instantiateWorkers := func() []Worker {
+		connectionsSharedByWorker := group.options.concurrency / group.options.connections
 
-	connectionsSharedByWorker := group.options.concurrency / group.options.connections
+		var connection net.Conn
+		var err error
 
-	var connection net.Conn
-	var err error
-
-	var connectionId = -1
-	var workers []Worker
-
-	for count := 0; count < int(group.options.concurrency); count++ {
-		if count%int(connectionsSharedByWorker) == 0 || connection == nil {
-			connection, err = group.newConnection()
-			if err != nil {
-				_, _ = fmt.Fprintf(os.Stderr, "[WorkerGroup] %v\n", err.Error())
-			} else {
-				connectionId = connectionId + 1
+		var connectionId = -1
+		var workers []Worker
+		for count := 0; count < int(group.options.concurrency); count++ {
+			if count%int(connectionsSharedByWorker) == 0 || connection == nil {
+				connection, err = group.newConnection()
+				if err != nil {
+					_, _ = fmt.Fprintf(os.Stderr, "[WorkerGroup] %v\n", err.Error())
+				} else {
+					connectionId = connectionId + 1
+				}
+				if group.responseReader != nil && connection != nil {
+					group.responseReader.StartReading(connection)
+				}
 			}
-			if group.responseReader != nil && connection != nil {
-				group.responseReader.StartReading(connection)
-			}
+			workers = append(workers, group.instantiateWorker(connection, connectionId, loadGenerationResponseChannel))
 		}
-		workers = append(workers, group.instantiateWorker(connection, connectionId, loadGenerationResponseChannel))
+		return workers
 	}
-	for _, worker := range workers {
-		worker.run(&wg)
+
+	//runs all the workers.
+	runWorkers := func(workers []Worker) *sync.WaitGroup {
+		var wg sync.WaitGroup
+		wg.Add(int(group.options.concurrency))
+
+		for _, worker := range workers {
+			worker.run(&wg)
+		}
+		return &wg
 	}
-	wg.Wait()
+	runWorkers(instantiateWorkers()).Wait()
 	group.doneChannel <- struct{}{}
 }
 
