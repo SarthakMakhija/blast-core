@@ -94,6 +94,8 @@ func (group *WorkerGroup) runWorkers(
 	var err error
 
 	var connectionId = -1
+	var workers []Worker
+
 	for count := 0; count < int(group.options.concurrency); count++ {
 		if count%int(connectionsSharedByWorker) == 0 || connection == nil {
 			connection, err = group.newConnection()
@@ -106,7 +108,10 @@ func (group *WorkerGroup) runWorkers(
 				group.responseReader.StartReading(connection)
 			}
 		}
-		group.runWorker(connection, connectionId, &wg, loadGenerationResponseChannel)
+		workers = append(workers, group.instantiateWorker(connection, connectionId, loadGenerationResponseChannel))
+	}
+	for _, worker := range workers {
+		worker.run(&wg)
 	}
 	wg.Wait()
 	group.doneChannel <- struct{}{}
@@ -135,15 +140,10 @@ func (group *WorkerGroup) newConnection() (net.Conn, error) {
 	return connection, nil
 }
 
-// runWorker runs a Worker.
-func (group *WorkerGroup) runWorker(
-	connection net.Conn,
-	connectionId int,
-	wg *sync.WaitGroup,
-	loadGenerationResponseChannel chan report.LoadGenerationResponse,
-) {
+// instantiateWorker creates a new Worker.
+func (group *WorkerGroup) instantiateWorker(connection net.Conn, connectionId int, loadGenerationResponseChannel chan report.LoadGenerationResponse) Worker {
 	totalRequests := group.options.totalRequests
-	Worker{
+	return Worker{
 		connection:   connection,
 		connectionId: connectionId,
 		requestId:    group.requestId,
@@ -155,5 +155,5 @@ func (group *WorkerGroup) runWorker(
 			stopChannel:            group.stopChannel,
 			loadGenerationResponse: loadGenerationResponseChannel,
 		},
-	}.run(wg)
+	}
 }
