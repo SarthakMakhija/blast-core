@@ -14,6 +14,7 @@ import (
 
 var (
 	numberOfRequests        = flag.Uint("n", 1000, "")
+	repeat                  = flag.Uint("r", 1, "")
 	concurrency             = flag.Uint("c", 50, "")
 	connections             = flag.Uint("conn", 1, "")
 	keepConnectionsAlive    = flag.Bool("kA", false, "")
@@ -67,7 +68,8 @@ func (parser ConstantPayloadArgumentsParser) Parse(executableName string) Blast 
 Usage: %v [options...] <url>
 
 Options:
-  -n      Number of requests to run. Default is 1000.
+  -n      Number of requests to sent in each run. Default is 1000.
+  -r      Number of repetitions. Default is 1. Consider n = 100, r = 10. A total of 10 runs will happen and each will send 100 requests.
   -c      Number of workers to run concurrently. Total number of requests cannot
           be smaller than the concurrency level. Default is 50.
   -f      File path containing the load payload.
@@ -113,6 +115,7 @@ Options:
 
 	url := flag.Args()[0]
 	assertUrl(url)
+	assertRepeat(*repeat)
 	assertPayloadFilePath(*payloadFilePath)
 	assertConnectTimeout(*connectTimeout)
 	assertRequestsPerSecond(*requestsPerSecond)
@@ -147,6 +150,7 @@ Usage: %v [options...] <url>
 
 Options:
   -n      Number of requests to run. Default is 1000.
+  -r      Number of repetitions. Default is 1. Consider n = 100, r = 10. A total of 10 runs will happen and each will send 100 requests.
   -c      Number of workers to run concurrently. Total number of requests cannot
           be smaller than the concurrency level. Default is 50.
   -rps    Rate limit in requests per second (RPS) per worker. Default is no rate limit.
@@ -191,6 +195,7 @@ Options:
 
 	url := flag.Args()[0]
 	assertUrl(url)
+	assertRepeat(*repeat)
 	assertConnectTimeout(*connectTimeout)
 	assertRequestsPerSecond(*requestsPerSecond)
 	assertLoadDuration(*loadDuration)
@@ -213,6 +218,13 @@ Options:
 func assertUrl(url string) {
 	if len(strings.Trim(url, " ")) == 0 {
 		exitFunction("URL cannot be blank. URL is of the form host:port.")
+	}
+}
+
+// assertRepeat asserts that repeat is not zero.
+func assertRepeat(repeat uint) {
+	if repeat == 0 {
+		exitFunction("-r cannot be zero.")
 	}
 }
 
@@ -318,7 +330,7 @@ func setUpBlast(
 	payloadGenerator payload.PayloadGenerator,
 	url string,
 ) Blast {
-	groupOptions := workers.NewGroupOptionsFullyLoaded(*concurrency, *connections, *numberOfRequests, 1, payloadGenerator, url, *requestsPerSecond, *connectTimeout)
+	groupOptions := workers.NewGroupOptionsFullyLoaded(*concurrency, *connections, *numberOfRequests, *repeat, payloadGenerator, url, *requestsPerSecond, *connectTimeout)
 
 	var instance Blast
 	if *readResponses {

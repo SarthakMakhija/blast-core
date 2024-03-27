@@ -26,6 +26,13 @@ func TestParseCommandLineArgumentsWithEmptyUrl(t *testing.T) {
 	})
 }
 
+func TestParseCommandLineArgumentsWithRepeatAsZero(t *testing.T) {
+	exitFunction = exitWithPanic
+	assert.Panics(t, func() {
+		assertRepeat(0)
+	})
+}
+
 func TestParseCommandLineArgumentsWithoutPayloadFilePath(t *testing.T) {
 	exitFunction = exitWithPanic
 	assert.Panics(t, func() {
