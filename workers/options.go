@@ -14,6 +14,7 @@ type GroupOptions struct {
 	concurrency       uint
 	connections       uint
 	totalRequests     uint
+	repeat            uint
 	payloadGenerator  payload.PayloadGenerator
 	targetAddress     string
 	requestsPerSecond float64
@@ -34,6 +35,7 @@ type WorkerOptions struct {
 func NewGroupOptions(
 	concurrency uint,
 	totalRequests uint,
+	repeat uint,
 	payloadGenerator payload.PayloadGenerator,
 	targetAddress string,
 ) GroupOptions {
@@ -41,6 +43,7 @@ func NewGroupOptions(
 		concurrency,
 		1,
 		totalRequests,
+		repeat,
 		payloadGenerator,
 		targetAddress,
 		0.0,
@@ -60,6 +63,7 @@ func NewGroupOptionsWithConnections(
 		concurrency,
 		connections,
 		totalRequests,
+		1,
 		payloadGenerator,
 		targetAddress,
 		0.0,
@@ -72,6 +76,7 @@ func NewGroupOptionsFullyLoaded(
 	concurrency uint,
 	connections uint,
 	totalRequests uint,
+	repeat uint,
 	payloadGenerator payload.PayloadGenerator,
 	targetAddress string,
 	requestsPerSecond float64,
@@ -81,6 +86,7 @@ func NewGroupOptionsFullyLoaded(
 		concurrency:       concurrency,
 		connections:       connections,
 		totalRequests:     totalRequests,
+		repeat:            repeat,
 		payloadGenerator:  payloadGenerator,
 		targetAddress:     targetAddress,
 		requestsPerSecond: requestsPerSecond,
@@ -90,5 +96,5 @@ func NewGroupOptionsFullyLoaded(
 
 // TotalRequests returns the total number of requests set in GroupOptions.
 func (groupOptions GroupOptions) TotalRequests() uint {
-	return groupOptions.totalRequests
+	return groupOptions.totalRequests * groupOptions.repeat
 }

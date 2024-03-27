@@ -25,12 +25,7 @@ func TestBlastWithLoadGeneration(t *testing.T) {
 
 	concurrency, totalRequests := uint(10), uint(20)
 
-	groupOptions := workers.NewGroupOptions(
-		concurrency,
-		totalRequests,
-		payload.NewConstantPayloadGenerator([]byte("HelloWorld")),
-		"localhost:10001",
-	)
+	groupOptions := workers.NewGroupOptions(concurrency, totalRequests, 1, payload.NewConstantPayloadGenerator([]byte("HelloWorld")), "localhost:10001")
 	buffer := &bytes.Buffer{}
 	blast.OutputStream = buffer
 
@@ -93,12 +88,7 @@ func TestBlastWithLoadGenerationAndResponseReading(t *testing.T) {
 
 	concurrency, totalRequests := uint(10), uint(20)
 
-	groupOptions := workers.NewGroupOptions(
-		concurrency,
-		totalRequests,
-		payload.NewConstantPayloadGenerator([]byte("HelloWorld")),
-		"localhost:10003",
-	)
+	groupOptions := workers.NewGroupOptions(concurrency, totalRequests, 1, payload.NewConstantPayloadGenerator([]byte("HelloWorld")), "localhost:10003")
 	responseOptions := blast.ResponseOptions{
 		ResponsePayloadSizeBytes: payloadSizeBytes,
 		TotalResponsesToRead:     totalRequests,
@@ -175,12 +165,7 @@ func TestBlastWithResponseReadingGivenTheTargetServerFailsInSendingResponses(t *
 
 	concurrency, totalRequests := uint(10), uint(20)
 
-	groupOptions := workers.NewGroupOptions(
-		concurrency,
-		totalRequests,
-		payload.NewConstantPayloadGenerator([]byte("HelloWorld")),
-		"localhost:10005",
-	)
+	groupOptions := workers.NewGroupOptions(concurrency, totalRequests, 1, payload.NewConstantPayloadGenerator([]byte("HelloWorld")), "localhost:10005")
 	responseOptions := blast.ResponseOptions{
 		ResponsePayloadSizeBytes: payloadSizeBytes,
 		TotalResponsesToRead:     20,
@@ -213,12 +198,7 @@ func TestBlastWithLoadGenerationAndAStopSignal(t *testing.T) {
 
 	concurrency, totalRequests := uint(1000), uint(2_00_000)
 
-	groupOptions := workers.NewGroupOptions(
-		concurrency,
-		totalRequests,
-		payload.NewConstantPayloadGenerator([]byte("HelloWorld")),
-		"localhost:10006",
-	)
+	groupOptions := workers.NewGroupOptions(concurrency, totalRequests, 1, payload.NewConstantPayloadGenerator([]byte("HelloWorld")), "localhost:10006")
 	buffer := &bytes.Buffer{}
 	blast.OutputStream = buffer
 
@@ -301,12 +281,7 @@ func TestBlastWithLoadGenerationAndConnectionsAreKeptAlive(t *testing.T) {
 
 	concurrency, totalRequests := uint(10), uint(20)
 
-	groupOptions := workers.NewGroupOptions(
-		concurrency,
-		totalRequests,
-		payload.NewConstantPayloadGenerator([]byte("HelloWorld")),
-		"localhost:10008",
-	)
+	groupOptions := workers.NewGroupOptions(concurrency, totalRequests, 1, payload.NewConstantPayloadGenerator([]byte("HelloWorld")), "localhost:10008")
 	buffer := &bytes.Buffer{}
 	blast.OutputStream = buffer
 

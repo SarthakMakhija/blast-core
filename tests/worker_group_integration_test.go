@@ -22,12 +22,7 @@ func TestSendsRequestsWithSingleConnection(t *testing.T) {
 
 	concurrency, totalRequests := uint(10), uint(20)
 
-	workerGroup := workers.NewWorkerGroup(workers.NewGroupOptions(
-		concurrency,
-		totalRequests,
-		payload.NewConstantPayloadGenerator([]byte("HelloWorld")),
-		"localhost:8080",
-	))
+	workerGroup := workers.NewWorkerGroup(workers.NewGroupOptions(concurrency, totalRequests, 1, payload.NewConstantPayloadGenerator([]byte("HelloWorld")), "localhost:8080"))
 	loadGenerationResponseChannel := workerGroup.Run()
 
 	workerGroup.WaitTillDone()
@@ -95,12 +90,7 @@ func TestSendsARequestAndReadsResponseWithSingleConnection(t *testing.T) {
 	}()
 
 	workerGroup := workers.NewWorkerGroupWithResponseReader(
-		workers.NewGroupOptions(
-			concurrency,
-			totalRequests,
-			payload.NewConstantPayloadGenerator([]byte("HelloWorld")),
-			"localhost:8082",
-		), report.NewResponseReader(responseSizeBytes, 100*time.Millisecond, responseChannel),
+		workers.NewGroupOptions(concurrency, totalRequests, 1, payload.NewConstantPayloadGenerator([]byte("HelloWorld")), "localhost:8082"), report.NewResponseReader(responseSizeBytes, 100*time.Millisecond, responseChannel),
 	)
 	loadGenerationResponseChannel := workerGroup.Run()
 
@@ -129,12 +119,7 @@ func TestSendsAdditionalRequestsThanConfiguredWithSingleConnection(t *testing.T)
 
 	concurrency, totalRequests := uint(6), uint(20)
 
-	workerGroup := workers.NewWorkerGroup(workers.NewGroupOptions(
-		concurrency,
-		totalRequests,
-		payload.NewConstantPayloadGenerator([]byte("HelloWorld")),
-		"localhost:8083",
-	))
+	workerGroup := workers.NewWorkerGroup(workers.NewGroupOptions(concurrency, totalRequests, 1, payload.NewConstantPayloadGenerator([]byte("HelloWorld")), "localhost:8083"))
 	loadGenerationResponseChannel := workerGroup.Run()
 
 	workerGroup.WaitTillDone()
@@ -152,12 +137,7 @@ func TestSendsAdditionalRequestsThanConfiguredWithSingleConnection(t *testing.T)
 func TestSendsRequestsOnANonRunningServer(t *testing.T) {
 	concurrency, totalRequests := uint(10), uint(20)
 
-	workerGroup := workers.NewWorkerGroup(workers.NewGroupOptions(
-		concurrency,
-		totalRequests,
-		payload.NewConstantPayloadGenerator([]byte("HelloWorld")),
-		"localhost:8090",
-	))
+	workerGroup := workers.NewWorkerGroup(workers.NewGroupOptions(concurrency, totalRequests, 1, payload.NewConstantPayloadGenerator([]byte("HelloWorld")), "localhost:8090"))
 	loadGenerationResponseChannel := workerGroup.Run()
 
 	workerGroup.WaitTillDone()
@@ -179,15 +159,7 @@ func TestSendsRequestsWithDialTimeout(t *testing.T) {
 
 	concurrency, totalRequests := uint(1), uint(1)
 
-	workerGroup := workers.NewWorkerGroup(workers.NewGroupOptionsFullyLoaded(
-		concurrency,
-		1,
-		totalRequests,
-		payload.NewConstantPayloadGenerator([]byte("HelloWorld")),
-		"localhost:8098",
-		0.0,
-		1*time.Nanosecond,
-	))
+	workerGroup := workers.NewWorkerGroup(workers.NewGroupOptionsFullyLoaded(concurrency, 1, totalRequests, 1, payload.NewConstantPayloadGenerator([]byte("HelloWorld")), "localhost:8098", 0.0, 1*time.Nanosecond))
 	loadGenerationResponseChannel := workerGroup.Run()
 
 	workerGroup.WaitTillDone()

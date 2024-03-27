@@ -318,15 +318,7 @@ func setUpBlast(
 	payloadGenerator payload.PayloadGenerator,
 	url string,
 ) Blast {
-	groupOptions := workers.NewGroupOptionsFullyLoaded(
-		*concurrency,
-		*connections,
-		*numberOfRequests,
-		payloadGenerator,
-		url,
-		*requestsPerSecond,
-		*connectTimeout,
-	)
+	groupOptions := workers.NewGroupOptionsFullyLoaded(*concurrency, *connections, *numberOfRequests, 1, payloadGenerator, url, *requestsPerSecond, *connectTimeout)
 
 	var instance Blast
 	if *readResponses {
