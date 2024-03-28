@@ -221,10 +221,10 @@ func assertConnectTimeout(timeout time.Duration) {
 	}
 }
 
-// assertRequestsPerSecond asserts that the requestsPerSecond is greater than or equal to zero.
+// assertRequestsPerSecond asserts that the requestsPerSecond is greater than zero.
 func assertRequestsPerSecond(requestsPerSecond float64) {
-	if requestsPerSecond < 0 {
-		exitFunction("-rps cannot be smaller than zero.")
+	if requestsPerSecond <= 0 {
+		exitFunction("-rps cannot be smaller than or equal to zero.")
 	}
 }
 

@@ -65,6 +65,12 @@ func TestParseCommandLineArgumentsWithRequestsPerSecondLessThanZero(t *testing.T
 	})
 }
 
+func TestParseCommandLineArgumentsWithRequestsPerSecondEqualToZero(t *testing.T) {
+	assert.Panics(t, func() {
+		assertRequestsPerSecond(0)
+	})
+}
+
 func TestParseCommandLineArgumentsWithLoadDurationZero(t *testing.T) {
 	tests := []struct {
 		loadDuration string
