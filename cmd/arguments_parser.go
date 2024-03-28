@@ -66,8 +66,7 @@ func (parser ConstantPayloadArgumentsParser) Parse(executableName string) Blast 
 Usage: %v [options...] <url>
 
 Options:
-  -c      Number of workers to run concurrently. Total number of requests cannot
-          be smaller than the concurrency level. Default is 50.
+  -c      Number of workers to run concurrently. Default is 50.
   -f      File path containing the load payload.
   -rps    Rate limit in requests per second (RPS) per worker. Default is 50.
   -z      Duration of blast to send requests. When duration is reached,
@@ -81,11 +80,11 @@ Options:
           Default is no deadline which means the read calls do not timeout.
           This flag is applied only if "Read responses" (-Rr) is true.
   -Rtr    Read total responses is the total responses to read from the target server. 
-          The load generation will stop if either the duration (-z) has exceeded or the total 
+          blast will stop if either the duration (-z) has exceeded or the total 
           responses have been read. This flag is applied only if "Read responses" (-Rr)
           is true.
   -Rsr    Read successful responses is the total successful responses to read from the target server. 
-          The load generation will stop if either the duration (-z) has exceeded or 
+          blast will stop if either the duration (-z) has exceeded or 
           the total successful responses have been read. Either of "-Rtr"
           or "-Rsr" must be specified, if -Rr is set. This flag is applied only if 
           "Read responses" (-Rr) is true.
@@ -142,8 +141,7 @@ func (parser DynamicPayloadArgumentsParser) Parse(executableName string) Blast {
 Usage: %v [options...] <url>
 
 Options:
-  -c      Number of workers to run concurrently. Total number of requests cannot
-          be smaller than the concurrency level. Default is 50.
+  -c      Number of workers to run concurrently. Default is 50.
   -rps    Rate limit in requests per second (RPS) per worker. Default is 50.
   -z      Duration of blast to send requests. When duration is reached,
           application stops and exits. Default is 20 seconds.
@@ -156,11 +154,11 @@ Options:
           Default is no deadline which means the read calls do not timeout.
           This flag is applied only if "Read responses" (-Rr) is true.
   -Rtr    Read total responses is the total responses to read from the target server. 
-          The load generation will stop if either the duration (-z) has exceeded or the total 
+          blast will stop if either the duration (-z) has exceeded or the total 
           responses have been read. This flag is applied only if "Read responses" (-Rr)
           is true.
   -Rsr    Read successful responses is the total successful responses to read from the target server. 
-          The load generation will stop if either the duration (-z) has exceeded or 
+          blast will stop if either the duration (-z) has exceeded or 
           the total successful responses have been read. Either of "-Rtr"
           or "-Rsr" must be specified, if -Rr is set. This flag is applied only if 
           "Read responses" (-Rr) is true.

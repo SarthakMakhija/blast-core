@@ -30,42 +30,6 @@ type WorkerOptions struct {
 	loadGenerationResponse chan report.LoadGenerationResponse
 }
 
-// NewGroupOptions creates a new instance of GroupOptions.
-func NewGroupOptions(
-	concurrency uint,
-	payloadGenerator payload.PayloadGenerator,
-	targetAddress string,
-	maxDuration time.Duration,
-) GroupOptions {
-	return NewGroupOptionsFullyLoaded(
-		concurrency,
-		1,
-		payloadGenerator,
-		targetAddress,
-		dialTimeout,
-		1.0,
-		maxDuration,
-	)
-}
-
-// NewGroupOptionsWithConnections creates a new instance of GroupOptions.
-func NewGroupOptionsWithConnections(
-	concurrency uint,
-	connections uint,
-	payloadGenerator payload.PayloadGenerator,
-	targetAddress string,
-) GroupOptions {
-	return NewGroupOptionsFullyLoaded(
-		concurrency,
-		connections,
-		payloadGenerator,
-		targetAddress,
-		dialTimeout,
-		0.0,
-		2*time.Millisecond,
-	)
-}
-
 // NewGroupOptionsFullyLoaded creates a new instance of GroupOptions.
 func NewGroupOptionsFullyLoaded(
 	concurrency uint,
@@ -85,6 +49,44 @@ func NewGroupOptionsFullyLoaded(
 		maxDuration:       maxDuration,
 		dialTimeout:       dialTimeout,
 	}
+}
+
+// NewGroupOptions creates a new instance of GroupOptions.
+// Meant for tests only.
+func NewGroupOptions(
+	concurrency uint,
+	payloadGenerator payload.PayloadGenerator,
+	targetAddress string,
+	maxDuration time.Duration,
+) GroupOptions {
+	return NewGroupOptionsFullyLoaded(
+		concurrency,
+		1,
+		payloadGenerator,
+		targetAddress,
+		dialTimeout,
+		1.0,
+		maxDuration,
+	)
+}
+
+// NewGroupOptionsWithConnections creates a new instance of GroupOptions.
+// Meant for tests only.
+func NewGroupOptionsWithConnections(
+	concurrency uint,
+	connections uint,
+	payloadGenerator payload.PayloadGenerator,
+	targetAddress string,
+) GroupOptions {
+	return NewGroupOptionsFullyLoaded(
+		concurrency,
+		connections,
+		payloadGenerator,
+		targetAddress,
+		dialTimeout,
+		1.0,
+		2*time.Millisecond,
+	)
 }
 
 // ExpectedLoadInTotalDuration returns the expected total load.

@@ -148,12 +148,12 @@ func NewBlastWithResponseReading(
 
 // WaitForCompletion waits for the load to complete.
 // Case1:
-// Consider that Blast is configured to run without response reading. In this case, WaitForCompletion will finish:
+// Consider that Blast is configured to run without response reading. In this case, WaitForCompletion will finish, if:
 // Blast has run for the specified maximum duration or,
 // Blast is made to stop.
 // If keepConnectionsAlive, then Blast will keep running until a termination signal is sent.
 // Case2:
-// Consider that Blast is configured to run with response reading. In this case, WaitForCompletion will finish:
+// Consider that Blast is configured to run with response reading. In this case, WaitForCompletion will finish, if:
 // The total responses or the total successful responses have been read from the target server or,
 // Blast has run for the specified maximum duration.
 // Blast is made to stop.
