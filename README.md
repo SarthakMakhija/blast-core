@@ -28,7 +28,8 @@ The distributed key/value storage engine has TCP servers that implement [Single 
 We needed a way to send load on our servers and get a report with details including total connections established, total requests sent, total responses read and time to get those responses back etc.
 
 Another detail, our servers accept protobuf encoded messages as byte slices, so the tool should be able to send the load (/byte slice) in a format that the target servers
-can decode. Almost all distributed systems accept payloads in a very specific format. For example, [JunoDB](https://github.com/paypal/junodb) sends (and receives) [OperationalMessage](https://github.com/paypal/junodb/blob/ca68aa14734768fd047b66ea0b7e6316b15fef16/pkg/proto/opMsg.go#L33) encoded as byte slice.
+can decode. Almost all distributed systems accept payloads in a very specific format. For example, [JunoDB](https://github.com/paypal/junodb) sends 
+(and receives) [OperationalMessage](https://github.com/paypal/junodb/blob/ca68aa14734768fd047b66ea0b7e6316b15fef16/pkg/proto/opMsg.go#L33) encoded as byte slice.
 
 All we needed was a tool that can send load (or specific load) on target TCP servers, read responses from those servers and present a decent :) report. This was an opportunity to build **blast**. **blast** is inspired from [hey](https://github.com/rakyll/hey), which is an HTTP load generator in golang.
 
@@ -40,16 +41,15 @@ It also provides support parsing command line arguments to simplify building a c
 ## Features
 
 **blast-core** provides the following features:
-1. Support for **sending N requests** to the target server.
+1. Support for sending **N requests per second per worker**.
 2. Support for **reading N total responses** from the target server.
 3. Support for **reading N successful responses** from the target server.
 4. Support for **customizing** the **load** **duration**. By default, blast runs for 20 seconds.
-5. Support for sending N requests to the target server with the specified **concurrency** **level**.
+5. Support for sending requests to the target server with the specified **concurrency level**.
 6. Support for **establishing N connections** to the target server.
 7. Support for specifying the **connection timeout**.
-8. Support for specifying **requests per second** (also called **throttle**).
-9. Support for **printing** the **report**.
-10. Support for sending dynamic payloads with **PayloadGenerator**.
+8. Support for **printing** the **report**.
+9. Support for sending dynamic payloads with **PayloadGenerator**.
 
 ## FAQs
 
