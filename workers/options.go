@@ -87,11 +87,6 @@ func NewGroupOptionsFullyLoaded(
 	}
 }
 
-// TotalRequests returns the total number of requests set in GroupOptions across all the runs defined by repeat flag.
-func (groupOptions GroupOptions) TotalRequests() uint {
-	return 100 //TODO: Remove this method
-}
-
 // ExpectedLoadInTotalDuration returns the expected total load.
 func (groupOptions GroupOptions) ExpectedLoadInTotalDuration() uint {
 	return uint(groupOptions.requestsPerSecond * float64(groupOptions.concurrency) * (groupOptions.maxDuration.Seconds()))
