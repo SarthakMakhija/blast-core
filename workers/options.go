@@ -13,17 +13,16 @@ const dialTimeout = 3 * time.Second
 type GroupOptions struct {
 	concurrency       uint
 	connections       uint
-	requestsPerRun    uint
-	repeat            uint
 	payloadGenerator  payload.PayloadGenerator
 	targetAddress     string
 	requestsPerSecond float64
+	maxDuration       time.Duration
 	dialTimeout       time.Duration
 }
 
 // WorkerOptions defines the configuration options for a running Worker.
 type WorkerOptions struct {
-	totalRequests          uint
+	maxDuration            time.Duration
 	payloadGenerator       payload.PayloadGenerator
 	targetAddress          string
 	requestsPerSecond      float64
@@ -34,20 +33,18 @@ type WorkerOptions struct {
 // NewGroupOptions creates a new instance of GroupOptions.
 func NewGroupOptions(
 	concurrency uint,
-	requestsPerRun uint,
-	repeat uint,
 	payloadGenerator payload.PayloadGenerator,
 	targetAddress string,
+	maxDuration time.Duration,
 ) GroupOptions {
 	return NewGroupOptionsFullyLoaded(
 		concurrency,
 		1,
-		requestsPerRun,
-		repeat,
 		payloadGenerator,
 		targetAddress,
-		0.0,
 		dialTimeout,
+		1.0,
+		maxDuration,
 	)
 }
 
@@ -55,19 +52,17 @@ func NewGroupOptions(
 func NewGroupOptionsWithConnections(
 	concurrency uint,
 	connections uint,
-	requestsPerRun uint,
 	payloadGenerator payload.PayloadGenerator,
 	targetAddress string,
 ) GroupOptions {
 	return NewGroupOptionsFullyLoaded(
 		concurrency,
 		connections,
-		requestsPerRun,
-		1,
 		payloadGenerator,
 		targetAddress,
-		0.0,
 		dialTimeout,
+		0.0,
+		2*time.Millisecond,
 	)
 }
 
@@ -75,26 +70,34 @@ func NewGroupOptionsWithConnections(
 func NewGroupOptionsFullyLoaded(
 	concurrency uint,
 	connections uint,
-	requestsPerRun uint,
-	repeat uint,
 	payloadGenerator payload.PayloadGenerator,
 	targetAddress string,
-	requestsPerSecond float64,
 	dialTimeout time.Duration,
+	requestsPerSecond float64,
+	maxDuration time.Duration,
 ) GroupOptions {
 	return GroupOptions{
 		concurrency:       concurrency,
 		connections:       connections,
-		requestsPerRun:    requestsPerRun,
-		repeat:            repeat,
 		payloadGenerator:  payloadGenerator,
 		targetAddress:     targetAddress,
 		requestsPerSecond: requestsPerSecond,
+		maxDuration:       maxDuration,
 		dialTimeout:       dialTimeout,
 	}
 }
 
 // TotalRequests returns the total number of requests set in GroupOptions across all the runs defined by repeat flag.
 func (groupOptions GroupOptions) TotalRequests() uint {
-	return groupOptions.requestsPerRun * groupOptions.repeat
+	return 100 //TODO: Remove this method
+}
+
+// ExpectedLoadInTotalDuration returns the expected total load.
+func (groupOptions GroupOptions) ExpectedLoadInTotalDuration() uint {
+	return uint(groupOptions.requestsPerSecond * float64(groupOptions.concurrency) * (groupOptions.maxDuration.Seconds()))
+}
+
+// MaxDuration returns the maximum duration.
+func (groupOptions GroupOptions) MaxDuration() time.Duration {
+	return groupOptions.maxDuration
 }

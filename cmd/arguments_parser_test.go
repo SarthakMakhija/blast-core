@@ -84,7 +84,7 @@ func TestParseCommandLineArgumentsWithLoadDurationZero(t *testing.T) {
 	for _, test := range tests {
 		duration, _ := time.ParseDuration(test.loadDuration)
 		assert.Panics(t, func() {
-			assertLoadDuration(duration)
+			assertMaxDuration(duration)
 		})
 	}
 }

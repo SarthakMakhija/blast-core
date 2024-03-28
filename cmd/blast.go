@@ -48,14 +48,12 @@ type Blast struct {
 	loadGenerationResponseChannel chan report.LoadGenerationResponse
 	responseChannel               chan report.SubjectServerResponse
 	doneChannel                   chan struct{}
-	maxRunDuration                time.Duration
 	keepConnectionsAlive          bool
 }
 
 // NewBlastWithoutResponseReading returns a new instance of Blast that does not read responses from the target server.
 func NewBlastWithoutResponseReading(
 	workerGroupOptions workers.GroupOptions,
-	maxRunDuration time.Duration,
 	keepConnectionsAlive bool,
 ) Blast {
 	// startLoad starts the workers for sending load on the target server.
@@ -84,7 +82,6 @@ func NewBlastWithoutResponseReading(
 			workerGroup:                   workerGroup,
 			loadGenerationResponseChannel: loadGenerationResponseChannel,
 			doneChannel:                   make(chan struct{}),
-			maxRunDuration:                maxRunDuration,
 			keepConnectionsAlive:          keepConnectionsAlive,
 		}
 	}
@@ -96,7 +93,6 @@ func NewBlastWithoutResponseReading(
 func NewBlastWithResponseReading(
 	workerGroupOptions workers.GroupOptions,
 	responseOptions ResponseOptions,
-	maxRunDuration time.Duration,
 	keepConnectionsAlive bool,
 ) Blast {
 	// newResponseReader creates a new instance of ResponseReader that reads responses from the target server.
@@ -138,11 +134,11 @@ func NewBlastWithResponseReading(
 			reporter:                      reporter,
 			responseReader:                responseReader,
 			responseOptions:               responseOptions,
+			groupOptions:                  workerGroupOptions,
 			workerGroup:                   workerGroup,
 			loadGenerationResponseChannel: loadGenerationResponseChannel,
 			responseChannel:               responseChannel,
 			doneChannel:                   make(chan struct{}),
-			maxRunDuration:                maxRunDuration,
 			keepConnectionsAlive:          keepConnectionsAlive,
 		}
 	}
@@ -153,13 +149,11 @@ func NewBlastWithResponseReading(
 // WaitForCompletion waits for the load to complete.
 // Case1:
 // Consider that Blast is configured to run without response reading. In this case, WaitForCompletion will finish:
-// If either the load is complete => TotalRequests have been sent to the target server or,
 // Blast has run for the specified maximum duration or,
 // Blast is made to stop.
 // If keepConnectionsAlive, then Blast will keep running until a termination signal is sent.
 // Case2:
 // Consider that Blast is configured to run with response reading. In this case, WaitForCompletion will finish:
-// If either the load is complete => TotalRequests have been sent to the target server or,
 // The total responses or the total successful responses have been read from the target server or,
 // Blast has run for the specified maximum duration.
 // Blast is made to stop.
@@ -189,12 +183,11 @@ func (blast Blast) Stop() {
 }
 
 // waitForLoadToComplete finishes if either of the conditions are true:
-// If the load is complete => TotalRequests have been sent to the target server or,
 // Blast has run for the specified maximum duration or,
 // Blast is made to stop.
 func (blast Blast) waitForLoadToComplete() {
 	loadReportedInspectionTimer := time.NewTicker(5 * time.Millisecond)
-	maxRunTimer := time.NewTimer(blast.maxRunDuration)
+	maxRunTimer := time.NewTimer(blast.groupOptions.MaxDuration())
 
 	go func() {
 		stopAll := func() {
@@ -207,13 +200,6 @@ func (blast Blast) waitForLoadToComplete() {
 			select {
 			case <-blast.workerGroup.DoneChannel():
 				_, _ = fmt.Fprintln(os.Stdout, "[Load completed]")
-			case <-loadReportedInspectionTimer.C:
-				if blast.reporter.TotalLoadReportedTillNow() >= uint64(
-					blast.groupOptions.TotalRequests(),
-				) {
-					stopAll()
-					return
-				}
 			case <-maxRunTimer.C:
 				stopAll()
 				return
@@ -226,13 +212,12 @@ func (blast Blast) waitForLoadToComplete() {
 }
 
 // waitForResponsesToComplete finishes if either of the conditions are true:
-// If either the load is complete => TotalRequests have been sent to the target server or,
 // The total responses or the total successful responses have been read from the target server or,
 // Blast has run for the specified maximum duration.
 // Blast is made to stop.
 func (blast Blast) waitForResponsesToComplete() {
 	responsesCapturedInspectionTimer := time.NewTicker(5 * time.Millisecond)
-	maxRunTimer := time.NewTimer(blast.maxRunDuration)
+	maxRunTimer := time.NewTimer(blast.groupOptions.MaxDuration())
 
 	go func() {
 		stopAll := func() {

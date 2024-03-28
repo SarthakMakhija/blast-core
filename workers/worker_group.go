@@ -2,20 +2,15 @@ package workers
 
 import (
 	"fmt"
+	"github.com/SarthakMakhija/blast-core/report"
 	"net"
 	"os"
 	"sync"
-
-	"github.com/SarthakMakhija/blast-core/report"
 )
 
 // WorkerGroup is a collection of workers that sends requestsPerRun to the server.
-// WorkerGroup creates a total of options.concurrency Workers.
-// Each Worker takes a part of the requestsPerRun.
-// Consider that 100 requests are to be sent with 5 workers, then each Worker will send
-// a total of 20 requests.
-// Consider that 100 requests are to be sent with 6 workers, then the system will end up
-// sending a total of 102 requests, and each Worker will send 17 requests.
+// WorkerGroup creates a total of GroupOptions.concurrency Workers.
+// Each Worker sends WorkerOptions.requestsPerSecond requests per second.
 // WorkerGroup also provides support for triggering response reading from the connection.
 type WorkerGroup struct {
 	options        GroupOptions
@@ -51,12 +46,9 @@ func NewWorkerGroupWithResponseReader(
 // This method runs a separate goroutine that runs the workers and the goroutine waits until
 // all the workers are done.
 func (group *WorkerGroup) Run() chan report.LoadGenerationResponse {
-	if group.options.requestsPerRun%group.options.concurrency != 0 {
-		group.options.requestsPerRun = ((group.options.requestsPerRun / group.options.concurrency) + 1) * group.options.concurrency
-	}
 	loadGenerationResponseChannel := make(
 		chan report.LoadGenerationResponse,
-		group.options.TotalRequests(),
+		group.options.ExpectedLoadInTotalDuration(),
 	)
 
 	go func() {
@@ -109,18 +101,16 @@ func (group *WorkerGroup) runWorkers(loadGenerationResponseChannel chan report.L
 		return workers
 	}
 
-	//runs all the workers, each worker will be run "repeat" number of times.
-	//runWorkersAndWait will wait till all the workers are done in each run.
+	//runs all the workers.
+	//runWorkersAndWait will wait till all the workers are done.
 	runWorkersAndWait := func(workers []Worker) {
-		for run := uint(1); run <= group.options.repeat; run++ {
-			var wg sync.WaitGroup
-			wg.Add(len(workers))
+		var wg sync.WaitGroup
+		wg.Add(len(workers))
 
-			for _, worker := range workers {
-				worker.run(&wg)
-			}
-			wg.Wait()
+		for _, worker := range workers {
+			worker.run(&wg)
 		}
+		wg.Wait()
 	}
 	runWorkersAndWait(instantiateWorkers())
 	group.doneChannel <- struct{}{}
@@ -151,13 +141,12 @@ func (group *WorkerGroup) newConnection() (net.Conn, error) {
 
 // instantiateWorker creates a new Worker.
 func (group *WorkerGroup) instantiateWorker(connection net.Conn, connectionId int, loadGenerationResponseChannel chan report.LoadGenerationResponse) Worker {
-	requestsPerRun := group.options.requestsPerRun
 	return Worker{
 		connection:   connection,
 		connectionId: connectionId,
 		requestId:    group.requestId,
 		options: WorkerOptions{
-			totalRequests:          requestsPerRun / group.options.concurrency,
+			maxDuration:            group.options.maxDuration,
 			payloadGenerator:       group.options.payloadGenerator,
 			targetAddress:          group.options.targetAddress,
 			requestsPerSecond:      group.options.requestsPerSecond,

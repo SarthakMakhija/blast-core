@@ -20,7 +20,7 @@ var (
 	keepConnectionsAlive    = flag.Bool("kA", false, "")
 	payloadFilePath         = flag.String("f", "", "")
 	requestsPerSecond       = flag.Float64("rps", 0, "")
-	loadDuration            = flag.Duration("z", 20*time.Second, "")
+	maxDuration             = flag.Duration("z", 20*time.Second, "")
 	connectTimeout          = flag.Duration("t", 3*time.Second, "")
 	readResponses           = flag.Bool("Rr", false, "")
 	responsePayloadSize     = flag.Int64("Rrs", -1, "")
@@ -119,7 +119,7 @@ Options:
 	assertPayloadFilePath(*payloadFilePath)
 	assertConnectTimeout(*connectTimeout)
 	assertRequestsPerSecond(*requestsPerSecond)
-	assertLoadDuration(*loadDuration)
+	assertMaxDuration(*maxDuration)
 	assertTotalConcurrentRequestsWithClientConnections(
 		*numberOfRequests,
 		*concurrency,
@@ -198,7 +198,7 @@ Options:
 	assertRepeat(*repeat)
 	assertConnectTimeout(*connectTimeout)
 	assertRequestsPerSecond(*requestsPerSecond)
-	assertLoadDuration(*loadDuration)
+	assertMaxDuration(*maxDuration)
 	assertTotalConcurrentRequestsWithClientConnections(
 		*numberOfRequests,
 		*concurrency,
@@ -249,8 +249,8 @@ func assertRequestsPerSecond(requestsPerSecond float64) {
 	}
 }
 
-// assertLoadDuration asserts that the loadDuration is greater than zero.
-func assertLoadDuration(duration time.Duration) {
+// assertMaxDuration asserts that the maxDuration is greater than zero.
+func assertMaxDuration(duration time.Duration) {
 	if duration <= time.Duration(0) {
 		exitFunction("-z cannot be smaller than or equal to zero.")
 	}
@@ -330,7 +330,15 @@ func setUpBlast(
 	payloadGenerator payload.PayloadGenerator,
 	url string,
 ) Blast {
-	groupOptions := workers.NewGroupOptionsFullyLoaded(*concurrency, *connections, *numberOfRequests, *repeat, payloadGenerator, url, *requestsPerSecond, *connectTimeout)
+	groupOptions := workers.NewGroupOptionsFullyLoaded(
+		*concurrency,
+		*connections,
+		payloadGenerator,
+		url,
+		*connectTimeout,
+		*requestsPerSecond,
+		*maxDuration,
+	)
 
 	var instance Blast
 	if *readResponses {
@@ -345,9 +353,9 @@ func setUpBlast(
 			ReadingOption:                  readingOption,
 			ReadDeadline:                   *readResponseDeadline,
 		}
-		instance = NewBlastWithResponseReading(groupOptions, responseOptions, *loadDuration, *keepConnectionsAlive)
+		instance = NewBlastWithResponseReading(groupOptions, responseOptions, *keepConnectionsAlive)
 	} else {
-		instance = NewBlastWithoutResponseReading(groupOptions, *loadDuration, *keepConnectionsAlive)
+		instance = NewBlastWithoutResponseReading(groupOptions, *keepConnectionsAlive)
 	}
 	return instance
 }

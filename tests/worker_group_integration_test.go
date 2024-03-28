@@ -20,21 +20,19 @@ func TestSendsRequestsWithSingleConnection(t *testing.T) {
 	server.accept(t)
 	defer server.stop()
 
-	concurrency, totalRequests := uint(10), uint(20)
-
-	workerGroup := workers.NewWorkerGroup(workers.NewGroupOptions(concurrency, totalRequests, 1, payload.NewConstantPayloadGenerator([]byte("HelloWorld")), "localhost:8080"))
+	concurrency := uint(10)
+	workerGroup := workers.NewWorkerGroup(workers.NewGroupOptions(concurrency, payload.NewConstantPayloadGenerator([]byte("HelloWorld")), "localhost:8080", 2*time.Millisecond))
 	loadGenerationResponseChannel := workerGroup.Run()
+
+	go func() {
+		for response := range loadGenerationResponseChannel {
+			assert.Nil(t, response.Err)
+			assert.Equal(t, int64(10), response.PayloadLengthBytes)
+		}
+	}()
 
 	workerGroup.WaitTillDone()
 	close(loadGenerationResponseChannel)
-
-	totalRequestsSent := 0
-	for response := range loadGenerationResponseChannel {
-		totalRequestsSent = totalRequestsSent + 1
-		assert.Nil(t, response.Err)
-		assert.Equal(t, int64(10), response.PayloadLengthBytes)
-	}
-	assert.Equal(t, 20, totalRequestsSent)
 }
 
 func TestSendsRequestsWithMultipleConnections(t *testing.T) {
@@ -45,25 +43,21 @@ func TestSendsRequestsWithMultipleConnections(t *testing.T) {
 	server.accept(t)
 	defer server.stop()
 
-	concurrency, connections, totalRequests := uint(20), uint(10), uint(40)
-	workerGroup := workers.NewWorkerGroup(workers.NewGroupOptionsWithConnections(
-		concurrency,
-		connections,
-		totalRequests,
-		payload.NewConstantPayloadGenerator([]byte("HelloWorld")),
-		"localhost:8081",
-	))
+	concurrency, connections := uint(20), uint(10)
+	workerGroup := workers.NewWorkerGroup(workers.NewGroupOptionsFullyLoaded(concurrency, connections, payload.NewConstantPayloadGenerator([]byte("HelloWorld")), "localhost:8081", 3*time.Second, 1, 2*time.Millisecond))
 	loadGenerationResponseChannel := workerGroup.Run()
+	uniqueConnectionIds := make(map[int]bool)
+
+	go func() {
+		for response := range loadGenerationResponseChannel {
+			uniqueConnectionIds[response.ConnectionId] = true
+			assert.Nil(t, response.Err)
+			assert.Equal(t, int64(10), response.PayloadLengthBytes)
+		}
+	}()
 
 	workerGroup.WaitTillDone()
 	close(loadGenerationResponseChannel)
-
-	uniqueConnectionIds := make(map[int]bool)
-	for response := range loadGenerationResponseChannel {
-		uniqueConnectionIds[response.ConnectionId] = true
-		assert.Nil(t, response.Err)
-		assert.Equal(t, int64(10), response.PayloadLengthBytes)
-	}
 
 	connectionIds := make([]int, 0, len(uniqueConnectionIds))
 	for connectionId := range uniqueConnectionIds {
@@ -90,63 +84,44 @@ func TestSendsARequestAndReadsResponseWithSingleConnection(t *testing.T) {
 	}()
 
 	workerGroup := workers.NewWorkerGroupWithResponseReader(
-		workers.NewGroupOptions(concurrency, totalRequests, 1, payload.NewConstantPayloadGenerator([]byte("HelloWorld")), "localhost:8082"), report.NewResponseReader(responseSizeBytes, 100*time.Millisecond, responseChannel),
+		workers.NewGroupOptions(concurrency, payload.NewConstantPayloadGenerator([]byte("HelloWorld")), "localhost:8082", 2*time.Millisecond), report.NewResponseReader(responseSizeBytes, 100*time.Millisecond, responseChannel),
 	)
 	loadGenerationResponseChannel := workerGroup.Run()
+
+	totalRequestsSent := 0
+	go func() {
+		for response := range loadGenerationResponseChannel {
+			totalRequests = totalRequests + 1
+			assert.Nil(t, response.Err)
+			assert.Equal(t, int64(10), response.PayloadLengthBytes)
+		}
+	}()
 
 	workerGroup.WaitTillDone()
 	close(loadGenerationResponseChannel)
 
-	for response := range loadGenerationResponseChannel {
-		assert.Nil(t, response.Err)
-		assert.Equal(t, int64(10), response.PayloadLengthBytes)
-	}
-
-	for count := 1; count < int(totalRequests); count++ {
+	for count := 1; count < totalRequestsSent; count++ {
 		response := <-responseChannel
 		assert.Nil(t, response.Err)
 		assert.Equal(t, int64(10), response.PayloadLengthBytes)
 	}
 }
 
-func TestSendsAdditionalRequestsThanConfiguredWithSingleConnection(t *testing.T) {
-	payloadSizeBytes := int64(10)
-	server, err := NewEchoServer("tcp", "localhost:8083", payloadSizeBytes)
-	assert.Nil(t, err)
-
-	server.accept(t)
-	defer server.stop()
-
-	concurrency, totalRequests := uint(6), uint(20)
-
-	workerGroup := workers.NewWorkerGroup(workers.NewGroupOptions(concurrency, totalRequests, 1, payload.NewConstantPayloadGenerator([]byte("HelloWorld")), "localhost:8083"))
-	loadGenerationResponseChannel := workerGroup.Run()
-
-	workerGroup.WaitTillDone()
-	close(loadGenerationResponseChannel)
-
-	totalRequestsSent := 0
-	for response := range loadGenerationResponseChannel {
-		totalRequestsSent = totalRequestsSent + 1
-		assert.Nil(t, response.Err)
-		assert.Equal(t, int64(10), response.PayloadLengthBytes)
-	}
-	assert.Equal(t, 24, totalRequestsSent)
-}
-
 func TestSendsRequestsOnANonRunningServer(t *testing.T) {
-	concurrency, totalRequests := uint(10), uint(20)
+	concurrency := uint(10)
 
-	workerGroup := workers.NewWorkerGroup(workers.NewGroupOptions(concurrency, totalRequests, 1, payload.NewConstantPayloadGenerator([]byte("HelloWorld")), "localhost:8090"))
+	workerGroup := workers.NewWorkerGroup(workers.NewGroupOptions(concurrency, payload.NewConstantPayloadGenerator([]byte("HelloWorld")), "localhost:8090", 2*time.Millisecond))
 	loadGenerationResponseChannel := workerGroup.Run()
+
+	go func() {
+		for response := range loadGenerationResponseChannel {
+			assert.Error(t, response.Err)
+			assert.Equal(t, workers.ErrNilConnection, response.Err)
+		}
+	}()
 
 	workerGroup.WaitTillDone()
 	close(loadGenerationResponseChannel)
-
-	for response := range loadGenerationResponseChannel {
-		assert.Error(t, response.Err)
-		assert.Equal(t, workers.ErrNilConnection, response.Err)
-	}
 }
 
 func TestSendsRequestsWithDialTimeout(t *testing.T) {
@@ -157,56 +132,17 @@ func TestSendsRequestsWithDialTimeout(t *testing.T) {
 	server.accept(t)
 	defer server.stop()
 
-	concurrency, totalRequests := uint(1), uint(1)
+	concurrency := uint(1)
 
-	workerGroup := workers.NewWorkerGroup(workers.NewGroupOptionsFullyLoaded(concurrency, 1, totalRequests, 1, payload.NewConstantPayloadGenerator([]byte("HelloWorld")), "localhost:8098", 0.0, 1*time.Nanosecond))
+	workerGroup := workers.NewWorkerGroup(workers.NewGroupOptionsFullyLoaded(concurrency, 1, payload.NewConstantPayloadGenerator([]byte("HelloWorld")), "localhost:8098", 1*time.Millisecond, 1.0, 2*time.Millisecond))
 	loadGenerationResponseChannel := workerGroup.Run()
+
+	go func() {
+		for response := range loadGenerationResponseChannel {
+			assert.Error(t, response.Err)
+		}
+	}()
 
 	workerGroup.WaitTillDone()
 	close(loadGenerationResponseChannel)
-
-	for response := range loadGenerationResponseChannel {
-		assert.Error(t, response.Err)
-		println(response.Err.Error())
-	}
-}
-
-func TestSendsRepeatingRequestsWithMultipleConnections(t *testing.T) {
-	payloadSizeBytes := int64(10)
-	server, err := NewEchoServer("tcp", "localhost:8099", payloadSizeBytes)
-	assert.Nil(t, err)
-
-	server.accept(t)
-	defer server.stop()
-
-	concurrency, connections, requestsPerRun := uint(20), uint(10), uint(40)
-	workerGroup := workers.NewWorkerGroup(workers.NewGroupOptionsFullyLoaded(
-		concurrency,
-		connections,
-		requestsPerRun,
-		2,
-		payload.NewConstantPayloadGenerator([]byte("HelloWorld")),
-		"localhost:8099",
-		0.0,
-		3*time.Second,
-	))
-	loadGenerationResponseChannel := workerGroup.Run()
-
-	workerGroup.WaitTillDone()
-	close(loadGenerationResponseChannel)
-
-	uniqueConnectionIds := make(map[int]bool)
-	for response := range loadGenerationResponseChannel {
-		uniqueConnectionIds[response.ConnectionId] = true
-		assert.Nil(t, response.Err)
-		assert.Equal(t, int64(10), response.PayloadLengthBytes)
-	}
-
-	connectionIds := make([]int, 0, len(uniqueConnectionIds))
-	for connectionId := range uniqueConnectionIds {
-		connectionIds = append(connectionIds, connectionId)
-	}
-	sort.Ints(connectionIds)
-
-	assert.Equal(t, []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, connectionIds)
 }

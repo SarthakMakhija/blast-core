@@ -33,19 +33,22 @@ func (worker Worker) run(wg *sync.WaitGroup) {
 }
 
 // sendRequests sends worker.options.requestsPerRun on the connection.
-// Each Worker can be stopped by closing the stopChannel, even before the requestsPerRun are sent.
+// Each Worker can be stopped by closing the stopChannel.
 // Each worker also implements throttle if worker.options.requestsPerSecond > 0.
 func (worker Worker) sendRequests() {
-	var throttle <-chan time.Time
+	var throttle <-chan time.Time = nil
 	if worker.options.requestsPerSecond > 0 {
 		throttle = time.Tick(
 			time.Duration(1e6/(worker.options.requestsPerSecond)) * time.Microsecond,
 		)
 	}
 
-	for request := 1; request <= int(worker.options.totalRequests); request++ {
+	maxDuration := time.Tick(worker.options.maxDuration)
+	for {
 		select {
 		case <-worker.options.stopChannel:
+			return
+		case <-maxDuration:
 			return
 		default:
 			if worker.options.requestsPerSecond > 0 {
@@ -56,7 +59,6 @@ func (worker Worker) sendRequests() {
 	}
 }
 
-// sendRequest sends a single request.
 // sendRequest sends a single request.
 // The result of sending the request is sent on the channel identified by worker.options.loadGenerationResponse.
 func (worker Worker) sendRequest() {

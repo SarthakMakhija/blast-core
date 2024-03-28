@@ -6,6 +6,7 @@ import (
 	"github.com/SarthakMakhija/blast-core/payload"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -21,119 +22,125 @@ func (writeCloser *BytesWriteCloser) Close() error {
 }
 
 func TestWritesPayloadByWorker(t *testing.T) {
-	loadGenerationResponse := make(chan report.LoadGenerationResponse, 1)
-	defer close(loadGenerationResponse)
+	loadGenerationResponse := make(chan report.LoadGenerationResponse)
 
 	var buffer bytes.Buffer
 	worker := Worker{
 		connection: &BytesWriteCloser{bufio.NewWriter(&buffer)},
 		requestId:  NewRequestId(),
 		options: WorkerOptions{
-			totalRequests:          uint(1),
+			maxDuration:            2 * time.Millisecond,
 			payloadGenerator:       payload.NewConstantPayloadGenerator([]byte("payload")),
 			loadGenerationResponse: loadGenerationResponse,
 		},
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(1)
-	worker.run(&wg)
-	wg.Wait()
+	go func() {
+		for response := range loadGenerationResponse {
+			assert.Nil(t, response.Err)
+			assert.Equal(t, int64(7), response.PayloadLengthBytes)
+		}
+	}()
 
-	response := <-worker.options.loadGenerationResponse
+	var workerWaitGroup sync.WaitGroup
+	workerWaitGroup.Add(1)
 
-	assert.Nil(t, response.Err)
-	assert.Equal(t, int64(7), response.PayloadLengthBytes)
+	worker.run(&workerWaitGroup)
+	workerWaitGroup.Wait()
+
+	close(loadGenerationResponse)
 }
 
 func TestWritesMultiplePayloadsByWorker(t *testing.T) {
-	totalRequests := uint(5)
-	loadGenerationResponse := make(chan report.LoadGenerationResponse, totalRequests)
-	defer close(loadGenerationResponse)
+	loadGenerationResponse := make(chan report.LoadGenerationResponse)
 
 	var buffer bytes.Buffer
 	worker := Worker{
 		connection: &BytesWriteCloser{bufio.NewWriter(&buffer)},
 		requestId:  NewRequestId(),
 		options: WorkerOptions{
-			totalRequests:          totalRequests,
+			maxDuration:            2 * time.Millisecond,
 			payloadGenerator:       payload.NewConstantPayloadGenerator([]byte("payload")),
 			loadGenerationResponse: loadGenerationResponse,
 		},
 	}
+
+	go func() {
+		for response := range loadGenerationResponse {
+			assert.Nil(t, response.Err)
+			assert.Equal(t, int64(7), response.PayloadLengthBytes)
+		}
+	}()
 
 	var wg sync.WaitGroup
 	wg.Add(1)
 	worker.run(&wg)
 	wg.Wait()
 
-	for count := 1; count <= int(totalRequests); count++ {
-		response := <-loadGenerationResponse
-		assert.Nil(t, response.Err)
-		assert.Equal(t, int64(7), response.PayloadLengthBytes)
-	}
+	close(loadGenerationResponse)
 }
 
 func TestWritesMultiplePayloadsByWorkerWithThrottle(t *testing.T) {
-	totalRequests := uint(5)
-	loadGenerationResponse := make(chan report.LoadGenerationResponse, totalRequests)
-	defer close(loadGenerationResponse)
+	loadGenerationResponse := make(chan report.LoadGenerationResponse)
 
 	var buffer bytes.Buffer
 	worker := Worker{
 		connection: &BytesWriteCloser{bufio.NewWriter(&buffer)},
 		requestId:  NewRequestId(),
 		options: WorkerOptions{
-			totalRequests:          totalRequests,
+			maxDuration:            2 * time.Millisecond,
 			payloadGenerator:       payload.NewConstantPayloadGenerator([]byte("payload")),
 			loadGenerationResponse: loadGenerationResponse,
 			requestsPerSecond:      float64(3),
 		},
 	}
 
+	go func() {
+		for response := range loadGenerationResponse {
+			assert.Nil(t, response.Err)
+			assert.Equal(t, int64(7), response.PayloadLengthBytes)
+		}
+	}()
+
 	var wg sync.WaitGroup
 	wg.Add(1)
 	worker.run(&wg)
 	wg.Wait()
 
-	for count := 1; count <= int(totalRequests); count++ {
-		response := <-loadGenerationResponse
-		assert.Nil(t, response.Err)
-		assert.Equal(t, int64(7), response.PayloadLengthBytes)
-	}
+	close(loadGenerationResponse)
 }
 
 func TestWritesOnANilConnectionWithConnectionId(t *testing.T) {
-	totalRequests := uint(2)
-	loadGenerationResponse := make(chan report.LoadGenerationResponse, totalRequests)
-	defer close(loadGenerationResponse)
+	loadGenerationResponse := make(chan report.LoadGenerationResponse)
 
 	worker := Worker{
 		connection: nil,
 		requestId:  NewRequestId(),
 		options: WorkerOptions{
-			totalRequests:          totalRequests,
+			maxDuration:            2 * time.Millisecond,
 			payloadGenerator:       payload.NewConstantPayloadGenerator([]byte("payload")),
 			loadGenerationResponse: loadGenerationResponse,
 		},
 	}
+
+	go func() {
+		for response := range loadGenerationResponse {
+			assert.Error(t, response.Err)
+			assert.Equal(t, -1, response.ConnectionId)
+			assert.Equal(t, ErrNilConnection, response.Err)
+		}
+	}()
 
 	var wg sync.WaitGroup
 	wg.Add(1)
 	worker.run(&wg)
 	wg.Wait()
 
-	for count := 1; count <= int(totalRequests); count++ {
-		response := <-loadGenerationResponse
-		assert.Error(t, response.Err)
-		assert.Equal(t, -1, response.ConnectionId)
-		assert.Equal(t, ErrNilConnection, response.Err)
-	}
+	close(loadGenerationResponse)
 }
 
 func TestWritesPayloadByWorkerWithConnectionId(t *testing.T) {
-	loadGenerationResponse := make(chan report.LoadGenerationResponse, 1)
-	defer close(loadGenerationResponse)
+	loadGenerationResponse := make(chan report.LoadGenerationResponse)
 
 	var buffer bytes.Buffer
 	worker := Worker{
@@ -141,19 +148,23 @@ func TestWritesPayloadByWorkerWithConnectionId(t *testing.T) {
 		requestId:    NewRequestId(),
 		connectionId: 10,
 		options: WorkerOptions{
-			totalRequests:          uint(1),
+			maxDuration:            2 * time.Millisecond,
 			payloadGenerator:       payload.NewConstantPayloadGenerator([]byte("payload")),
 			loadGenerationResponse: loadGenerationResponse,
 		},
 	}
+
+	go func() {
+		for response := range loadGenerationResponse {
+			assert.Nil(t, response.Err)
+			assert.Equal(t, 10, response.ConnectionId)
+		}
+	}()
 
 	var wg sync.WaitGroup
 	wg.Add(1)
 	worker.run(&wg)
 	wg.Wait()
 
-	response := <-worker.options.loadGenerationResponse
-
-	assert.Nil(t, response.Err)
-	assert.Equal(t, 10, response.ConnectionId)
+	close(loadGenerationResponse)
 }
