@@ -169,7 +169,7 @@ func TestBlastWithLoadGenerationAndResponseReadingForMaximumDuration(t *testing.
 
 func TestBlastWithResponseReadingGivenTheTargetServerFailsInSendingResponses(t *testing.T) {
 	payloadSizeBytes := int64(10)
-	server, err := NewEchoServerWithNoWriteback("tcp", "localhost:10005", payloadSizeBytes, 2)
+	server, err := NewEchoServerWithNoWriteback("tcp", "localhost:10005", payloadSizeBytes, 1)
 	assert.Nil(t, err)
 
 	server.accept(t)
