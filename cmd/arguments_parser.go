@@ -13,13 +13,11 @@ import (
 )
 
 var (
-	numberOfRequests        = flag.Uint("n", 1000, "")
-	repeat                  = flag.Uint("r", 1, "")
 	concurrency             = flag.Uint("c", 50, "")
 	connections             = flag.Uint("conn", 1, "")
 	keepConnectionsAlive    = flag.Bool("kA", false, "")
 	payloadFilePath         = flag.String("f", "", "")
-	requestsPerSecond       = flag.Float64("rps", 0, "")
+	requestsPerSecond       = flag.Float64("rps", 50, "")
 	maxDuration             = flag.Duration("z", 20*time.Second, "")
 	connectTimeout          = flag.Duration("t", 3*time.Second, "")
 	readResponses           = flag.Bool("Rr", false, "")
@@ -68,13 +66,10 @@ func (parser ConstantPayloadArgumentsParser) Parse(executableName string) Blast 
 Usage: %v [options...] <url>
 
 Options:
-  -n      Number of requests to sent in each run. Default is 1000.
-  -r      Number of repetitions. Default is 1. Consider n = 100, r = 10.
-          A total of 10 runs will happen and each will send 100 requests.
   -c      Number of workers to run concurrently. Total number of requests cannot
           be smaller than the concurrency level. Default is 50.
   -f      File path containing the load payload.
-  -rps    Rate limit in requests per second (RPS) per worker. Default is no rate limit.
+  -rps    Rate limit in requests per second (RPS) per worker. Default is 50.
   -z      Duration of blast to send requests. When duration is reached,
           application stops and exits. Default is 20 seconds.
           Example usage: -z 10s or -z 3m.
@@ -115,13 +110,11 @@ Options:
 
 	url := flag.Args()[0]
 	assertUrl(url)
-	assertRepeat(*repeat)
 	assertPayloadFilePath(*payloadFilePath)
 	assertConnectTimeout(*connectTimeout)
 	assertRequestsPerSecond(*requestsPerSecond)
 	assertMaxDuration(*maxDuration)
-	assertTotalConcurrentRequestsWithClientConnections(
-		*numberOfRequests,
+	assertConcurrencyWithClientConnections(
 		*concurrency,
 		*connections,
 	)
@@ -149,12 +142,9 @@ func (parser DynamicPayloadArgumentsParser) Parse(executableName string) Blast {
 Usage: %v [options...] <url>
 
 Options:
-  -n      Number of requests to run. Default is 1000.
-  -r      Number of repetitions. Default is 1. Consider n = 100, r = 10. 
-          A total of 10 runs will happen and each will send 100 requests.
   -c      Number of workers to run concurrently. Total number of requests cannot
           be smaller than the concurrency level. Default is 50.
-  -rps    Rate limit in requests per second (RPS) per worker. Default is no rate limit.
+  -rps    Rate limit in requests per second (RPS) per worker. Default is 50.
   -z      Duration of blast to send requests. When duration is reached,
           application stops and exits. Default is 20 seconds.
           Example usage: -z 10s or -z 3m.
@@ -195,12 +185,10 @@ Options:
 
 	url := flag.Args()[0]
 	assertUrl(url)
-	assertRepeat(*repeat)
 	assertConnectTimeout(*connectTimeout)
 	assertRequestsPerSecond(*requestsPerSecond)
 	assertMaxDuration(*maxDuration)
-	assertTotalConcurrentRequestsWithClientConnections(
-		*numberOfRequests,
+	assertConcurrencyWithClientConnections(
 		*concurrency,
 		*connections,
 	)
@@ -218,13 +206,6 @@ Options:
 func assertUrl(url string) {
 	if len(strings.Trim(url, " ")) == 0 {
 		exitFunction("URL cannot be blank. URL is of the form host:port.")
-	}
-}
-
-// assertRepeat asserts that repeat is not zero.
-func assertRepeat(repeat uint) {
-	if repeat == 0 {
-		exitFunction("-r cannot be zero.")
 	}
 }
 
@@ -256,19 +237,16 @@ func assertMaxDuration(duration time.Duration) {
 	}
 }
 
-// assertTotalConcurrentRequestsWithClientConnections asserts the relationship between concurrency, totalRequests and
+// assertConcurrencyWithClientConnections asserts the relationship between concurrency and
 // client connections.
-func assertTotalConcurrentRequestsWithClientConnections(
-	totalRequests, concurrency, connections uint,
+func assertConcurrencyWithClientConnections(
+	concurrency, connections uint,
 ) {
 	if connections <= 0 {
 		exitFunction("-conn cannot be smaller than 1.")
 	}
-	if totalRequests <= 0 || concurrency <= 0 {
-		exitFunction("-n and -c cannot be smaller than 1.")
-	}
-	if totalRequests < concurrency {
-		exitFunction("-n cannot be smaller than -c.")
+	if concurrency <= 0 {
+		exitFunction("-c cannot be smaller than 1.")
 	}
 	if connections > concurrency {
 		exitFunction("-conn cannot be greater than -c.")
